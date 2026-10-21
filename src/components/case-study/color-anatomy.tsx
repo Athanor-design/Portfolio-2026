@@ -168,11 +168,11 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                     <div
                         className={cx(
                             "relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-3 transition-colors duration-300 sm:p-5",
-                            mode === "Dark" ? "bg-[#2b2b2b]" : "bg-[#e5e5e5]",
+                            mode === "Dark" ? "bg-[#333333]" : "bg-[#e5e5e5]",
                         )}
                     >
-                        <Target tokens={["card-subtle", "border-subtle"]} className="w-full max-w-[460px] rounded-xl">
-                            <div className="relative flex flex-col overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--card-subtle)] text-[var(--foreground)] shadow-lg transition-colors duration-300">
+                        <Target tokens={["card-subtle", "border-subtle"]} className="w-full rounded-lg sm:max-w-[460px] sm:rounded-xl">
+                            <div className="relative flex flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--card-subtle)] text-[var(--foreground)] shadow-lg sm:rounded-xl transition-colors duration-300">
                                 <XClose aria-hidden="true" className="absolute top-3.5 right-3.5 size-4 opacity-70" />
                                 {/* DialogHeader */}
                                 <div className="flex flex-col gap-1 px-4 pt-4 pb-2">
@@ -189,7 +189,7 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                                 <div className="flex flex-col gap-3 px-4 pt-2 pb-4">
                                     {STEPS.map(({ icon: Icon, title, text, done, info }, index) => (
                                         <div key={title} className="flex gap-3">
-                                            <Target tokens={["background-subtle", "border-subtle"]} className="h-fit shrink-0 rounded-lg">
+                                            <Target tokens={["background-subtle", "border-subtle"]} className="hidden h-fit shrink-0 rounded-lg sm:block">
                                                 <span className="flex size-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] transition-colors duration-300">
                                                     <Icon className="size-4" />
                                                 </span>
@@ -235,15 +235,15 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                                                 {/* AccordionContent of the open step */}
                                                 {index === 0 && (
                                                     <Target tokens={["background-elevated", "border-subtle"]} className="rounded-lg">
-                                                        <dl className="flex flex-col gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-elevated)] px-3 py-2.5 transition-colors duration-300">
+                                                        <dl className="flex flex-col gap-2 rounded-lg border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--background-elevated)_45%,transparent)] px-3 py-2.5 transition-colors duration-300">
                                                             {DETAILS.map(({ icon: DetailIcon, label, value }) => (
                                                                 <div
                                                                     key={label}
-                                                                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2 text-[11px]"
+                                                                    className="grid grid-cols-[108px_minmax(0,1fr)] gap-x-3 text-[11px] sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-2"
                                                                 >
                                                                     <dt className="flex min-w-0 items-center gap-2 text-[var(--muted-foreground)]">
                                                                         <DetailIcon className="size-3.5 shrink-0" />
-                                                                        <span className="truncate">{label}</span>
+                                                                        <span className="whitespace-nowrap sm:truncate">{label}</span>
                                                                     </dt>
                                                                     <dd className="truncate">{value}</dd>
                                                                 </div>

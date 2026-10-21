@@ -41,6 +41,13 @@ const buildTree = (groups: TokenGroup[]) => {
 };
 
 /** True when a group path sits at or under the selected tree node. */
+/** Search: a variable matches on its group path, name, values or aliases. */
+const tokenMatches = (group: TokenGroup, token: Token, q: string) =>
+    [group.path.join("/"), token.name, ...token.values.flatMap((v) => [String(v.value), v.alias ?? ""])]
+        .join(" ")
+        .toLowerCase()
+        .includes(q);
+
 const inGroup = (path: string[], key: string | null) => {
     if (!key) return true;
     const joined = path.join("/");
@@ -119,11 +126,11 @@ const Value = ({ token, value }: { token: Token; value: TokenValue }) => {
     const ownAlpha = !!value.ownAlpha;
     const swatch = isColor && <Swatch color={colorWithAlpha(String(value.value), ownAlpha ? undefined : value.alpha)} />;
     return (
-        <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 items-start gap-2 md:items-center">
             {value.alias ? (
-                <span className="inline-flex min-w-0 items-center gap-1.5 rounded-[5px] border border-[#e6e6e6] px-1.5 py-1 text-[11px]">
+                <span className="inline-flex min-w-0 items-start gap-1.5 rounded-[5px] border border-[#e6e6e6] px-1.5 py-1 text-[11px] leading-[14px] md:items-center">
                     {swatch}
-                    <span className="truncate">{value.alias}</span>
+                    <span className="[overflow-wrap:anywhere] md:truncate">{value.alias}</span>
                 </span>
             ) : isColor ? (
                 <span className="inline-flex items-center gap-2">
@@ -131,7 +138,7 @@ const Value = ({ token, value }: { token: Token; value: TokenValue }) => {
                     {String(value.value).replace("#", "")}
                 </span>
             ) : (
-                <span className="truncate tabular-nums">{value.value}</span>
+                <span className="tabular-nums [overflow-wrap:anywhere] md:truncate">{value.value}</span>
             )}
             {isColor && value.alpha !== undefined && <AlphaField alpha={value.alpha} muted={!!value.alias && !ownAlpha} />}
         </span>
@@ -211,6 +218,77 @@ const CursorArrow = () => (
     </svg>
 );
 
+/**
+ * Row of chips that scrolls sideways: by touch, but also with a mouse wheel / trackpad (vertical scroll is turned
+ * sideways) or by dragging. A fade on the right edge shows there is more to see.
+ */
+const ChipRow = ({ label, children }: { label: string; children: ReactNode }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [edges, setEdges] = useState({ start: true, end: false });
+    useEffect(() => {
+        const row = ref.current;
+        if (!row) return;
+        const update = () => setEdges({ start: row.scrollLeft <= 2, end: row.scrollLeft + row.clientWidth >= row.scrollWidth - 2 });
+        update();
+        // Vertical wheel scrolls the row while it can still move, then lets the page scroll
+        const onWheel = (event: WheelEvent) => {
+            if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+            const max = row.scrollWidth - row.clientWidth;
+            const next = row.scrollLeft + event.deltaY;
+            if ((event.deltaY < 0 && row.scrollLeft <= 0) || (event.deltaY > 0 && row.scrollLeft >= max)) return;
+            event.preventDefault();
+            row.scrollLeft = Math.max(0, Math.min(max, next));
+        };
+        row.addEventListener("wheel", onWheel, { passive: false });
+        row.addEventListener("scroll", update, { passive: true });
+        const observer = new ResizeObserver(update);
+        observer.observe(row);
+        return () => {
+            row.removeEventListener("wheel", onWheel);
+            row.removeEventListener("scroll", update);
+            observer.disconnect();
+        };
+    }, []);
+    // Mouse drag (touch already scrolls natively); a drag doesn't count as a click on the chip under the pointer
+    const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+    return (
+        <div
+            ref={ref}
+            role="group"
+            aria-label={label}
+            onPointerDown={(event) => {
+                if (event.pointerType !== "mouse" || !ref.current) return;
+                drag.current = { x: event.clientX, left: ref.current.scrollLeft, moved: false };
+            }}
+            onPointerMove={(event) => {
+                const d = drag.current;
+                if (!d || !ref.current) return;
+                const dx = event.clientX - d.x;
+                if (Math.abs(dx) > 4) d.moved = true;
+                if (d.moved) ref.current.scrollLeft = d.left - dx;
+            }}
+            onPointerUp={() => setTimeout(() => (drag.current = null))}
+            onPointerLeave={() => (drag.current = null)}
+            onClickCapture={(event) => {
+                if (drag.current?.moved) event.stopPropagation();
+            }}
+            className={cx(
+                "-mx-3 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] select-none",
+                // Fades on the sides that still hide chips
+                !edges.end && edges.start && "[mask-image:linear-gradient(to_right,black_calc(100%-40px),transparent)]",
+                !edges.end &&
+                    !edges.start &&
+                    "[mask-image:linear-gradient(to_right,transparent,black_28px,black_calc(100%-40px),transparent)]",
+                edges.end && !edges.start && "[mask-image:linear-gradient(to_right,transparent,black_28px)]",
+            )}
+        >
+            {children}
+            {/* Keeps the right padding inside the scroll area */}
+            <span aria-hidden="true" className="w-1.5 shrink-0" />
+        </div>
+    );
+};
+
 interface FigmaVariablesProps {
     /** Static preview (carousel card): no interaction, hidden from assistive tech. */
     preview?: boolean;
@@ -229,6 +307,9 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
 
     const collection = COLLECTIONS.find((c) => c.name === collectionName) ?? primitiveCollection;
     const multiMode = collection.modes.length > 1;
+    // Phones show one mode column at a time (picked with a segmented control) instead of scrolling sideways
+    const [phoneMode, setPhoneMode] = useState(0);
+    const shownMode = Math.min(phoneMode, collection.modes.length - 1);
 
     // Column widths (Name + one per mode), in px, per collection; unset = the default proportional layout
     const [columnWidths, setColumnWidths] = useState<Record<string, number[]>>({});
@@ -290,18 +371,24 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                 .filter((g) => q || inGroup(g.path, group))
                 .map((g) => ({
                     ...g,
-                    tokens: q
-                        ? g.tokens.filter((t) =>
-                              [g.path.join("/"), t.name, ...t.values.flatMap((v) => [String(v.value), v.alias ?? ""])]
-                                  .join(" ")
-                                  .toLowerCase()
-                                  .includes(q),
-                          )
-                        : g.tokens,
+                    tokens: q ? g.tokens.filter((t) => tokenMatches(g, t, q)) : g.tokens,
                 }))
                 .filter((g) => g.tokens.length)
         );
     }, [collection, group, query]);
+
+    // Search stays within the open collection (as in Figma), so point to matches in the other collections
+    const elsewhere = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return [];
+        return COLLECTIONS.filter((c) => c.name !== collection.name)
+            .map((c) => ({ name: c.name, count: c.groups.reduce((n, g) => n + g.tokens.filter((t) => tokenMatches(g, t, q)).length, 0) }))
+            .filter((c) => c.count);
+    }, [collection, query]);
+    const openCollection = (name: string) => {
+        setCollectionName(name);
+        setGroup(null);
+    };
 
     // In the carousel preview the whole card is a button, so nothing inside may be interactive
     const Clickable = preview ? "div" : "button";
@@ -495,41 +582,7 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                             <span className="truncate text-[13px] font-semibold">{collection.name}</span>
                         </div>
                     )}
-                    {/* Small screens: the sidebar is hidden, groups move to a select */}
-                    {!preview && (
-                        <select
-                            value={collectionName}
-                            onChange={(event) => {
-                                setCollectionName(event.target.value);
-                                setGroup(null);
-                            }}
-                            aria-label="Collection"
-                            className="h-8 rounded-[6px] bg-[#f5f5f5] px-2 text-[12px] font-semibold text-[#1e1e1e] md:hidden"
-                        >
-                            {COLLECTIONS.map((c) => (
-                                <option key={c.name} value={c.name}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    {!preview && (
-                        <select
-                            value={group ?? ""}
-                            onChange={(event) => setGroup(event.target.value || null)}
-                            aria-label="Groupe de variables"
-                            className="mr-auto h-8 min-w-0 rounded-[6px] bg-[#f5f5f5] px-2 text-[12px] text-[#1e1e1e] md:hidden"
-                        >
-                            <option value="">All ({countTokens(collection.groups)})</option>
-                            {flattenTree(tree).map(({ node, depth }) => (
-                                <option key={node.key} value={node.key}>
-                                    {"\u00a0\u00a0".repeat(depth * 2)}
-                                    {node.name} ({node.count})
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    <SearchField className="ml-auto flex h-8 w-[180px] min-w-0 items-center gap-1.5 rounded-[6px] bg-[#f5f5f5] px-2 text-[#8c8c8c]">
+                    <SearchField className="ml-auto flex h-8 w-full min-w-0 md:w-[180px] items-center gap-1.5 rounded-[6px] bg-[#f5f5f5] px-2 text-[#8c8c8c]">
                         <SearchLg className="size-3.5 shrink-0" aria-hidden="true" />
                         {preview ? (
                             <span>Search</span>
@@ -567,12 +620,108 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                     <XClose className="hidden size-4 sm:block" aria-hidden="true" />
                 </div>
 
-                {/* Two modes don't fit a phone: the table then scrolls sideways */}
+                {/* Phones: the sidebar is hidden. Collections become a segmented control, groups a row of chips that
+                    scrolls sideways (with the sub-groups of the selected one below); multi-mode collections show one mode
+                    at a time, switched from the value column header */}
+                {!preview && (
+                    <div className="flex shrink-0 flex-col gap-2 border-b border-[#e6e6e6] px-3 py-2.5 md:hidden">
+                        <div className="grid grid-cols-3 gap-0.5 rounded-[8px] bg-[#f0f0f0] p-0.5" role="group" aria-label="Collection">
+                            {COLLECTIONS.map((c) => (
+                                <button
+                                    key={c.name}
+                                    type="button"
+                                    onClick={() => {
+                                        setCollectionName(c.name);
+                                        setGroup(null);
+                                    }}
+                                    aria-pressed={c.name === collectionName}
+                                    className={cx(
+                                        "flex h-8 items-center justify-center gap-1.5 rounded-[6px] text-[12px] transition duration-100 ease-linear",
+                                        c.name === collectionName
+                                            ? "bg-white font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+                                            : "text-[#5c5c5c]",
+                                    )}
+                                >
+                                    {c.name}
+                                    <span className="text-[10px] font-normal text-[#8c8c8c] tabular-nums">{countTokens(c.groups)}</span>
+                                </button>
+                            ))}
+                        </div>
+                        {(() => {
+                            const chip = (label: string, count: number, selected: boolean, onPress: () => void, key: string) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    onClick={(event) => {
+                                        onPress();
+                                        // Keep the tapped chip in view inside its scrolling row
+                                        event.currentTarget.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+                                    }}
+                                    aria-pressed={selected}
+                                    className={cx(
+                                        "flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12px] whitespace-nowrap transition duration-100 ease-linear",
+                                        selected
+                                            ? "border-[#0d99ff] bg-[#e5f4ff] font-semibold text-[#0a6dc2]"
+                                            : "border-[#e6e6e6] text-[#1e1e1e]",
+                                    )}
+                                >
+                                    {label}
+                                    <span className={cx("text-[10px] tabular-nums", selected ? "text-[#0a6dc2]/70" : "text-[#8c8c8c]")}>
+                                        {count}
+                                    </span>
+                                </button>
+                            );
+                            const top = tree.find((node) => group && inGroup(group.split("/"), node.key));
+                            return (
+                                <>
+                                    <ChipRow label="Groupe de variables">
+                                        {chip("All", countTokens(collection.groups), !group, () => setGroup(null), "all")}
+                                        {tree.map((node) =>
+                                            chip(node.name, node.count, top?.key === node.key, () => setGroup(node.key), node.key),
+                                        )}
+                                    </ChipRow>
+                                    {top && top.children.length > 0 && (
+                                        <ChipRow label={`Sous-groupes de ${top.name}`}>
+                                            {chip("Tous", top.count, group === top.key, () => setGroup(top.key), "all-sub")}
+                                            {top.children.map((node) =>
+                                                chip(
+                                                    node.name,
+                                                    node.count,
+                                                    !!group && inGroup(group.split("/"), node.key),
+                                                    () => setGroup(node.key),
+                                                    node.key,
+                                                ),
+                                            )}
+                                        </ChipRow>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </div>
+                )}
+
+                {!preview && visibleGroups.length > 0 && elsewhere.length > 0 && (
+                    <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1 border-b border-[#e6e6e6] bg-[#fafafa] px-4 py-2 text-[11px] text-[#8c8c8c]">
+                        Aussi dans
+                        {elsewhere.map((c) => (
+                            <button
+                                key={c.name}
+                                type="button"
+                                onClick={() => openCollection(c.name)}
+                                className="font-semibold text-[#0a6dc2] underline-offset-2 hover:underline"
+                            >
+                                {c.name} ({c.count})
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Wider screens with two modes: the table scrolls sideways when it doesn't fit */}
                 <div ref={tableScrollRef} className="min-h-0 flex-1 overflow-auto overscroll-contain">
                     <div className="relative" style={widths && { minWidth: widths.reduce((sum, w) => sum + w, 0) + 40 }}>
                         <table
                             ref={tableRef}
-                            className={cx("w-full table-fixed border-collapse text-left", multiMode && !widths && "min-w-[600px]")}
+                            className={cx("w-full table-fixed border-collapse text-left", multiMode && !widths && "md:min-w-[600px]")}
                             // Resized: columns keep their px widths, the last column takes what's left, and it scrolls when wider
                             style={widths && { minWidth: widths.reduce((sum, w) => sum + w, 0) + 40 }}
                         >
@@ -582,13 +731,19 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                                     widths.map((width, i) => <col key={i} style={{ width }} />)
                                 ) : (
                                     <>
-                                        <col className={multiMode ? "w-[22%]" : "w-[42%]"} />
-                                        {collection.modes.map((mode) => (
-                                            <col key={mode} />
+                                        <col className={multiMode ? "w-[44%] md:w-[22%]" : "w-[42%]"} />
+                                        {collection.modes.map((mode, m) => (
+                                            <col
+                                                key={mode}
+                                                className={cx(
+                                                    !preview &&
+                                                        (m !== shownMode ? "hidden md:table-column" : multiMode && "w-[56%] md:w-auto"),
+                                                )}
+                                            />
                                         ))}
                                     </>
                                 )}
-                                <col className={widths ? "" : multiMode ? "w-10" : "w-0 sm:w-[24%]"} />
+                                <col className={widths ? "" : multiMode ? "hidden w-10 md:table-column" : "w-0 sm:w-[24%]"} />
                             </colgroup>
                             <thead className="sticky top-0 z-10 bg-white">
                                 <tr className="h-10 border-b border-[#e6e6e6]">
@@ -598,12 +753,50 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                                             ref={(th) => {
                                                 headerCells.current[i] = th;
                                             }}
-                                            className="border-r border-[#e6e6e6] px-4 font-medium"
+                                            className={cx(
+                                                "border-r border-[#e6e6e6] px-4 font-medium",
+                                                !preview && i > 0 && i - 1 !== shownMode && "hidden md:table-cell",
+                                            )}
                                         >
-                                            {label}
+                                            {/* Phones show one mode at a time: its header switches between them */}
+                                            {!preview && multiMode && i > 0 ? (
+                                                <>
+                                                    <span className="hidden md:inline">{label}</span>
+                                                    <span
+                                                        className="-mx-2 grid auto-cols-fr grid-flow-col gap-0.5 rounded-[7px] bg-[#f0f0f0] p-0.5 md:hidden"
+                                                        role="group"
+                                                        aria-label="Mode affiché"
+                                                    >
+                                                        {collection.modes.map((mode, m) => (
+                                                            <button
+                                                                key={mode}
+                                                                type="button"
+                                                                onClick={() => setPhoneMode(m)}
+                                                                aria-pressed={m === shownMode}
+                                                                className={cx(
+                                                                    "h-6 rounded-[5px] px-2.5 text-[11px] transition duration-100 ease-linear",
+                                                                    m === shownMode
+                                                                        ? "bg-white font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+                                                                        : "font-normal text-[#5c5c5c]",
+                                                                )}
+                                                            >
+                                                                {mode}
+                                                            </button>
+                                                        ))}
+                                                    </span>
+                                                </>
+                                            ) : !preview && multiMode && i === 0 ? (
+                                                // Phones: the first header labels the mode switcher next to it
+                                                <>
+                                                    <span className="hidden md:inline">{label}</span>
+                                                    <span className="md:hidden">Mode</span>
+                                                </>
+                                            ) : (
+                                                label
+                                            )}
                                         </th>
                                     ))}
-                                    <th className={multiMode ? "" : "hidden sm:table-cell"} aria-hidden="true">
+                                    <th className={multiMode ? "hidden md:table-cell" : "hidden sm:table-cell"} aria-hidden="true">
                                         {multiMode && <Plus className="mx-auto size-4" />}
                                     </th>
                                 </tr>
@@ -623,36 +816,71 @@ export const FigmaVariables = ({ preview = false, autoplay = false, className }:
                                     )}
                                     {g.tokens.map((t) => (
                                         <tr key={t.name} className="h-10 border-b border-[#e6e6e6] hover:bg-[#fafafa]">
-                                            <td className="border-r border-[#e6e6e6] px-4">
-                                                <span className="flex min-w-0 items-center gap-2.5" title={t.name}>
+                                            <td className="border-r border-[#e6e6e6] px-3 py-2 align-top md:px-4 md:py-0 md:align-middle">
+                                                <span
+                                                    className="mt-[5px] flex min-w-0 items-start gap-2.5 leading-[16px] md:mt-0 md:items-center"
+                                                    title={t.name}
+                                                >
                                                     <TypeIcon token={t} />
-                                                    <span className="truncate">{t.name}</span>
+                                                    <span className="[overflow-wrap:anywhere] md:truncate">{t.name}</span>
                                                 </span>
                                             </td>
                                             {t.values.map((v, m) => (
-                                                <td key={collection.modes[m]} className="border-r border-[#e6e6e6] px-3">
+                                                <td
+                                                    key={collection.modes[m]}
+                                                    className={cx(
+                                                        "border-r border-[#e6e6e6] px-3 py-2 align-top md:py-0 md:align-middle",
+                                                        !preview && m !== shownMode && "hidden md:table-cell",
+                                                    )}
+                                                >
                                                     <Value token={t} value={v} />
                                                 </td>
                                             ))}
-                                            <td className={multiMode ? "" : "hidden sm:table-cell"} />
+                                            <td className={multiMode ? "hidden md:table-cell" : "hidden sm:table-cell"} />
                                         </tr>
                                     ))}
                                 </tbody>
                             ))}
                         </table>
-                        {!preview &&
-                            edges.map((left, i) => (
-                                <ColumnResizer
-                                    key={i}
-                                    left={left}
-                                    label={`Redimensionner la colonne ${["Name", ...collection.modes][i]}`}
-                                    getWidth={() => currentWidths()[i]}
-                                    onResize={(width) => resizeColumn(i, width)}
-                                    onReset={resetColumns}
-                                />
-                            ))}
+                        {/* Column resizing is a pointer interaction: wider screens only */}
+                        {!preview && (
+                            <div className="hidden md:contents">
+                                {edges.map((left, i) => (
+                                    <ColumnResizer
+                                        key={i}
+                                        left={left}
+                                        label={`Redimensionner la colonne ${["Name", ...collection.modes][i]}`}
+                                        getWidth={() => currentWidths()[i]}
+                                        onResize={(width) => resizeColumn(i, width)}
+                                        onReset={resetColumns}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    {!visibleGroups.length && <p className="px-4 py-6 text-[#8c8c8c]">Aucune variable ne correspond à « {query} ».</p>}
+                    {!visibleGroups.length && (
+                        <div className="flex flex-col items-start gap-3 px-4 py-6 text-[#8c8c8c]">
+                            <p>
+                                Aucune variable ne correspond à « {query} » dans {collection.name}.
+                            </p>
+                            {elsewhere.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <span>Résultats dans</span>
+                                    {elsewhere.map((c) => (
+                                        <button
+                                            key={c.name}
+                                            type="button"
+                                            onClick={() => openCollection(c.name)}
+                                            className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[#0d99ff] bg-[#e5f4ff] px-3 font-semibold text-[#0a6dc2] transition duration-100 ease-linear hover:bg-[#d6edff]"
+                                        >
+                                            {c.name}
+                                            <span className="text-[10px] font-normal tabular-nums text-[#0a6dc2]/70">{c.count}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex h-11 shrink-0 items-center gap-2 border-t border-[#e6e6e6] px-4 text-[#1e1e1e]">

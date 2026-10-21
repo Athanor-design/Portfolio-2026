@@ -234,7 +234,7 @@ const ImportError = ({ play }: { play: boolean }) => {
                             : { duration: 0.55, delay: 0.75, ease: "easeInOut", repeat: Infinity, repeatDelay: 3 },
                 }}
             >
-                <div className="flex items-start gap-2.5 px-3 pt-3 pb-2.5">
+                <div className="flex items-start gap-2.5 px-3 pt-2.5 pb-1.5">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[rgba(248,113,113,0.12)] text-[#f87171]">
                         <AlertCircle className="size-3.5" />
                     </span>
@@ -245,12 +245,7 @@ const ImportError = ({ play }: { play: boolean }) => {
                         <p className="mt-0.5 text-[11px] leading-snug text-tertiary">Veuillez importer vos factures manuellement.</p>
                     </div>
                 </div>
-                <motion.div
-                    className="flex justify-end gap-1.5 border-t border-white/[0.08] px-3 py-1.5"
-                    initial={{ opacity: 0 }}
-                    animate={play ? { opacity: 1 } : undefined}
-                    transition={{ duration: 0.3, delay: 1.2 }}
-                >
+                <div className="flex justify-end gap-1.5 border-t border-white/[0.08] px-3 py-1.5">
                     <span className="inline-flex h-6 items-center rounded-md border border-white/[0.14] px-2 text-[11px] font-medium text-secondary">
                         Annuler
                     </span>
@@ -258,7 +253,7 @@ const ImportError = ({ play }: { play: boolean }) => {
                         <Upload01 className="size-3" />
                         Importer un .csv
                     </span>
-                </motion.div>
+                </div>
             </motion.div>
         </div>
     );

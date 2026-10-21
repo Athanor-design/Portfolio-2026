@@ -212,9 +212,9 @@ export const PaletteGuide = ({ mode }: { mode: PaletteMode }) => {
     const scaleRow = ({ title, hue, text }: (typeof PALETTE_SCALES)["dark"][number]) => {
         const colors = STEPS.map((step) => String(primitive([mode, hue], step)));
         return (
-            <div key={title} className="grid grid-cols-1 gap-3 sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-5">
+            <div key={title} className="grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-5">
                 <BlockIntro title={title} text={text} dark={dark} />
-                <div className="grid grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.4fr)_repeat(5,minmax(0,1fr))] items-start gap-1">
+                <div className="grid grid-cols-4 items-start gap-1 sm:grid-cols-6 md:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.4fr)_repeat(5,minmax(0,1fr))]">
                     {colors.map((color, index) => (
                         <Swatch
                             key={STEPS[index]}
@@ -248,9 +248,9 @@ export const PaletteGuide = ({ mode }: { mode: PaletteMode }) => {
                         Your Brand color and black and white style
                     </span>
                 </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-5">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-5">
                     <BlockIntro title="Base" text={PALETTE_COPY.base} dark={dark} />
-                    <div className="grid grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.4fr)_repeat(5,minmax(0,1fr))] items-start gap-1">
+                    <div className="grid grid-cols-4 items-start gap-1 sm:grid-cols-6 md:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.4fr)_repeat(5,minmax(0,1fr))]">
                         {[
                             { label: "White", color: base("white"), hex: "#FFFFFF" },
                             { label: "Black", color: base("black"), hex: "#000000" },

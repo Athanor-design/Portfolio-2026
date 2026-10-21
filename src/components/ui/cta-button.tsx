@@ -9,7 +9,8 @@ interface CtaButtonProps {
     children: ReactNode;
     color?: "primary" | "secondary" | "tertiary";
     icon?: "arrow" | "download";
-    download?: boolean;
+    /** Download the link instead of opening it; a string sets the saved file name. */
+    download?: boolean | string;
     /** Stretch to the container width on small screens (stacked mobile CTAs). */
     fullWidthMobile?: boolean;
 }

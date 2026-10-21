@@ -117,7 +117,7 @@ export const IntroPanel = ({ copied, onCopyEmail }: IntroPanelProps) => {
                         Me contacter
                     </ShaderButton>
                     <span data-dots-quiet className="flex sm:inline-flex">
-                        <CtaButton href={profile.cv} color="secondary" icon="download" download fullWidthMobile>
+                        <CtaButton href={profile.cv} color="secondary" icon="download" download="CV_Boris_Courdouan.pdf" fullWidthMobile>
                             Télécharger le CV
                         </CtaButton>
                     </span>

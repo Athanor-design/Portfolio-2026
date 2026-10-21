@@ -12,6 +12,12 @@ import type { Palette, Project } from "@/data/content";
 import { experiences, mailtoHref, profile, projects } from "@/data/content";
 import { screenSrcSet } from "@/utils/screen-src-set";
 
+/** Widths of the PNG ladder generated next to each designed cover (`<name>-<width>.png`). */
+const COVER_WIDTHS = [
+    320, 360, 400, 440, 480, 520, 560, 600, 640, 680, 720, 760, 800, 840, 880, 920, 960, 1000, 1080, 1200, 1320, 1440, 1560, 1680, 1800,
+    1920, 2000,
+];
+
 const accents: Record<Palette, string> = {
     ocean: "#2f5bff",
     sunset: "#f0541c",
@@ -49,11 +55,13 @@ const ProjectTile = ({ project, index }: { project: Project; index: number }) =>
                 <div className="relative aspect-[16/10] overflow-hidden rounded-[10px]">
                     <div className="absolute inset-0 transition duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-hover:blur-sm group-focus-visible:scale-105 group-focus-visible:blur-sm">
                         {project.cover ? (
-                            // Designed cover: shown full-bleed, anchored left so its title is never cropped
+                            // Designed cover: shown full-bleed, anchored left so its title is never cropped. The tile width
+                            // varies with the window, so a ladder of PNG widths lets the browser pick one just above the
+                            // drawn size (a 16:9 cover filling a 16:10 tile is drawn 10/9 of the tile width)
                             <img
                                 src={project.cover}
-                                srcSet={screenSrcSet(project.cover, 896)}
-                                sizes="(min-width: 1024px) 50vw, 100vw"
+                                srcSet={COVER_WIDTHS.map((w) => `${project.cover!.replace(/\.\w+$/, "")}-${w}.png ${w}w`).join(", ")}
+                                sizes="(min-width: 1024px) calc((min(100vw, 1600px) / 2 - 35px) * 1.112), calc((100vw - 55px) * 1.112)"
                                 alt=""
                                 className="size-full object-cover object-left [image-rendering:-webkit-optimize-contrast]"
                             />
