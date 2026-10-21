@@ -93,7 +93,18 @@ const ActiveContext = createContext<{ active: string | null; setActive: (token: 
 });
 
 /** Wraps an element of the mock UI: selected in Figma blue when one of its variables is highlighted. */
-const Target = ({ tokens, children, className }: { tokens: string[]; children: ReactNode; className?: string }) => {
+const Target = ({
+    tokens,
+    children,
+    className,
+    inset = false,
+}: {
+    tokens: string[];
+    children: ReactNode;
+    className?: string;
+    /** Label drawn over the element's top-left corner instead of above it (for elements touching a clipped edge). */
+    inset?: boolean;
+}) => {
     const { active, setActive } = useContext(ActiveContext);
     const on = !!active && tokens.includes(active);
     return (
@@ -104,7 +115,12 @@ const Target = ({ tokens, children, className }: { tokens: string[]; children: R
         >
             {children}
             {on && (
-                <span className="pointer-events-none absolute -top-[18px] left-0 z-20 rounded-[3px] bg-[#0d99ff] px-1 py-px font-mono text-[9px] leading-none whitespace-nowrap text-white">
+                <span
+                    className={cx(
+                        "pointer-events-none absolute z-20 rounded-[3px] bg-[#0d99ff] px-1 py-px font-mono text-[9px] leading-none whitespace-nowrap text-white",
+                        inset ? "top-1 left-1" : "-top-[18px] left-0",
+                    )}
+                >
                     {active}
                 </span>
             )}
@@ -167,17 +183,21 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                     {/* Neutral grey stage, outside the design system, so only the dialog carries the tokens */}
                     <div
                         className={cx(
-                            "relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-3 transition-colors duration-300 sm:p-5",
+                            "relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-4 transition-colors duration-300 sm:p-5",
                             mode === "Dark" ? "bg-[#333333]" : "bg-[#e5e5e5]",
                         )}
                     >
-                        <Target tokens={["card-subtle", "border-subtle"]} className="w-full rounded-lg sm:max-w-[460px] sm:rounded-xl">
-                            <div className="relative flex flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--card-subtle)] text-[var(--foreground)] shadow-lg sm:rounded-xl transition-colors duration-300">
-                                <XClose aria-hidden="true" className="absolute top-3.5 right-3.5 size-4 opacity-70" />
+                        <Target
+                            tokens={["card-subtle", "border-subtle"]}
+                            inset
+                            className="w-full rounded-2xl sm:max-w-[480px]"
+                        >
+                            <div className="relative flex flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--card-subtle)] text-[var(--foreground)] shadow-[0_24px_48px_-16px_rgba(0,0,0,0.28)] transition-colors duration-300">
+                                <XClose aria-hidden="true" className="absolute top-4 right-4 size-4 opacity-70 sm:top-5 sm:right-5" />
                                 {/* DialogHeader */}
-                                <div className="flex flex-col gap-1 px-4 pt-4 pb-2">
+                                <div className="flex flex-col gap-1 px-4 pt-4 pb-2 sm:px-5 sm:pt-5">
                                     <Target tokens={["foreground"]} className="w-fit rounded-sm">
-                                        <p className="text-[14px] leading-tight font-semibold">Launch checklist</p>
+                                        <p className="text-[14px] leading-tight font-semibold sm:text-[15px]">Launch checklist</p>
                                     </Target>
                                     <Target tokens={["muted-foreground"]} className="w-fit rounded-sm">
                                         <p className="text-[11px] text-[var(--muted-foreground)]">
@@ -186,11 +206,14 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                                     </Target>
                                 </div>
                                 {/* Accordion */}
-                                <div className="flex flex-col gap-3 px-4 pt-2 pb-4">
+                                <div className="flex flex-col gap-3 px-4 pt-2 pb-4 sm:gap-3.5 sm:px-5 sm:pb-5">
                                     {STEPS.map(({ icon: Icon, title, text, done, info }, index) => (
                                         <div key={title} className="flex gap-3">
-                                            <Target tokens={["background-subtle", "border-subtle"]} className="hidden h-fit shrink-0 rounded-lg sm:block">
-                                                <span className="flex size-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] transition-colors duration-300">
+                                            <Target
+                                                tokens={["background-subtle", "border-subtle"]}
+                                                className="hidden h-fit shrink-0 rounded-[10px] sm:block"
+                                            >
+                                                <span className="flex size-8 items-center justify-center rounded-[10px] border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] transition-colors duration-300">
                                                     <Icon className="size-4" />
                                                 </span>
                                             </Target>
@@ -234,8 +257,17 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                                                 </div>
                                                 {/* AccordionContent of the open step */}
                                                 {index === 0 && (
-                                                    <Target tokens={["background-elevated", "border-subtle"]} className="rounded-lg">
-                                                        <dl className="flex flex-col gap-2 rounded-lg border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--background-elevated)_45%,transparent)] px-3 py-2.5 transition-colors duration-300">
+                                                    <Target
+                                                        tokens={["background-elevated", "border-subtle"]}
+                                                        className="rounded-xl"
+                                                    >
+                                                        <dl
+                                                            className={cx(
+                                                                "flex flex-col gap-2 rounded-xl border border-[var(--border-subtle)] px-3 py-2.5 transition-colors duration-300",
+                                                                // Dark: a 5% white veil over the dialog; Light: the token itself
+                                                                mode === "Dark" ? "bg-white/5" : "bg-[var(--background-elevated)]",
+                                                            )}
+                                                        >
                                                             {DETAILS.map(({ icon: DetailIcon, label, value }) => (
                                                                 <div
                                                                     key={label}
@@ -257,14 +289,19 @@ export const ColorAnatomy = ({ preview = false, className }: ColorAnatomyProps) 
                                 </div>
                                 {/* DialogFooter */}
                                 <Target tokens={["background-subtle", "border-subtle"]} className="rounded-none">
-                                    <div className="flex justify-end gap-2 border-t border-[var(--border-subtle)] bg-[var(--background-subtle)] px-4 py-3 transition-colors duration-300">
-                                        <Target tokens={["border-subtle", "card-subtle"]} className="rounded-md">
-                                            <span className="inline-flex h-7 items-center rounded-md border border-[var(--border-subtle)] bg-[var(--card-subtle)] px-3 text-[11px] font-medium shadow-xs">
+                                    <div
+                                        className={cx(
+                                            "grid grid-cols-2 gap-2 border-t border-[var(--border-subtle)] px-4 py-3 transition-colors duration-300 sm:flex sm:justify-end sm:px-5 sm:py-3.5",
+                                            mode === "Dark" ? "bg-white/5" : "bg-[var(--background-subtle)]",
+                                        )}
+                                    >
+                                        <Target tokens={["border-subtle", "card-subtle"]} className="rounded-lg">
+                                            <span className="flex h-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--card-subtle)] px-3 text-[12px] font-medium shadow-xs sm:inline-flex sm:h-8 sm:px-3.5">
                                                 Cancel
                                             </span>
                                         </Target>
-                                        <Target tokens={["primary", "primary-foreground"]} className="rounded-md">
-                                            <span className="inline-flex h-7 items-center rounded-md border border-transparent bg-[var(--primary)] px-3 text-[11px] font-medium text-[var(--primary-foreground)] shadow-xs">
+                                        <Target tokens={["primary", "primary-foreground"]} className="rounded-lg">
+                                            <span className="flex h-9 items-center justify-center rounded-lg border border-transparent bg-[var(--primary)] px-3 text-[12px] font-medium text-[var(--primary-foreground)] shadow-xs sm:inline-flex sm:h-8 sm:px-3.5">
                                                 Save
                                             </span>
                                         </Target>
