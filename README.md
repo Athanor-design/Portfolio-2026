@@ -1,32 +1,35 @@
-# React + TypeScript + Vite
+# Boris Courdouan — UX/UI Designer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Portfolio de Boris Courdouan, UX/UI Designer avec 3 ans d'expérience en **SaaS B2B finance** (TRESO2, Havas).
+Spécialisé en **design system**, maquettage, prototypage et tests utilisateur.
 
-Currently, two official plugins are available:
+📍 Paris · 🗓️ Disponible en novembre 2026
+✉️ [courdouan.boris@gmail.com](mailto:courdouan.boris@gmail.com) · 💼 [LinkedIn](https://www.linkedin.com/in/boriscourdouan/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Études de cas
 
-## React Compiler
+| Projet | Sujet |
+| :-- | :-- |
+| **Connecteurs ERP** | Connecter des ERP et logiciels partenaires à la plateforme TRESO2, sans import manuel. |
+| **Rapprochement des factures** | Automatiser l'approbation des factures réconciliées. |
+| **Design system** | Créer un design system basé sur le theming shadcn/ui : tokens, style guide, alignement design-dev. |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Comment ce portfolio a été construit
 
-## Expanding the Oxlint configuration
+Ce site est pensé comme un projet produit, de la maquette jusqu'au code :
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- **Design dans Figma** : maquettes, études de cas et tokens de design (couleurs, espacements, rayons).
+- **Développement accéléré par l'IA** avec [Claude Code](https://claude.com/claude-code) : les maquettes et références sont traduites en pages fonctionnelles, et le design reste piloté par le designer.
+- **Vrais tokens Figma** : l'étude de cas du design system affiche une réplique interactive du panneau Variables de Figma, alimentée par les exports réels des tokens.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+### Stack technique
+
+React 19 · TypeScript · Tailwind CSS v4 · React Aria Components · Untitled UI · Motion · Vite
+
+## Lancer le projet en local
+
+```bash
+npm install
+npm run dev     # http://localhost:5173
+npm run build   # version de production
 ```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
