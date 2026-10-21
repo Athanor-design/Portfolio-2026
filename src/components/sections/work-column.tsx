@@ -138,16 +138,18 @@ const JourneyCard = () => (
                                 )}
                                 <p className="text-sm text-tertiary">{exp.period}</p>
                             </div>
-                            {/* Role and contracts on one line (current contract stands out), the company context below */}
+                            {/* Role and contracts on one line (current contract first), the company context below */}
                             <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                                 <p className="text-[15px] font-medium text-primary">{exp.role}</p>
-                                {exp.contracts?.map((contract, index) => (
+                                {exp.contracts?.map((contract) => (
                                     <span
                                         key={contract.label}
                                         className={
-                                            index === 0
-                                                ? "inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 py-0.5 text-xs font-medium text-secondary ring-1 ring-white/[0.1] ring-inset"
-                                                : "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs text-tertiary ring-1 ring-white/[0.08] ring-inset"
+                                            // Same size for every badge; work-study keeps quieter colours, with a faint fill and a firmer outline so it reads
+                                            // as the same size as the filled one
+                                            contract.label === "Alternance"
+                                                ? "inline-flex items-center gap-1.5 rounded-full bg-white/[0.025] px-2.5 py-0.5 text-xs font-medium text-tertiary ring-1 ring-white/[0.16] ring-inset"
+                                                : "inline-flex items-center gap-1.5 rounded-full bg-white/[0.06] px-2.5 py-0.5 text-xs font-medium text-secondary ring-1 ring-white/[0.1] ring-inset"
                                         }
                                     >
                                         {contract.label}
