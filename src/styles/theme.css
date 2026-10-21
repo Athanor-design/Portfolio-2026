@@ -1,0 +1,121 @@
+/*
+ * Design tokens — semantic naming follows the Untitled UI convention
+ * (text-primary, bg-secondary, border-secondary, fg-brand-primary…).
+ * Split portfolio layout (YWY-style), dark mode: charcoal cards on a near-black page.
+ */
+
+:root {
+    /* Brand = black: a neutral warm scale (the accent is the dark UI itself) */
+    --color-brand-25: rgb(250 250 249);
+    --color-brand-50: rgb(244 244 242);
+    --color-brand-100: rgb(230 229 226);
+    --color-brand-200: rgb(208 207 203);
+    --color-brand-300: rgb(172 170 166);
+    --color-brand-400: rgb(138 136 131);
+    --color-brand-500: rgb(98 96 92);
+    --color-brand-600: rgb(66 65 62);
+    --color-brand-700: rgb(44 44 42);
+    --color-brand-800: rgb(30 30 29);
+    --color-brand-900: rgb(20 20 19);
+    --color-brand-950: rgb(10 10 10);
+
+    /* Aurora palette — soft blurred gradients (Dia / Arc style) */
+    --grad-blue: rgb(94 140 255);
+    --grad-sky: rgb(122 215 240);
+    --grad-violet: rgb(160 120 255);
+    --grad-pink: rgb(255 140 200);
+    --grad-peach: rgb(255 170 110);
+    --grad-sun: rgb(255 214 120);
+    --grad-mint: rgb(110 220 170);
+    /* Saturated stops for gradient text */
+    --grad-text-1: rgb(47 91 255);
+    --grad-text-2: rgb(124 58 237);
+    --grad-text-3: rgb(214 51 132);
+    --grad-text-4: rgb(232 90 26);
+
+    --font-grotesk: "Geist", "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+    /* Dark mode — near-black page, charcoal cards, warm off-white ink */
+    color-scheme: dark;
+
+    /* Text */
+    --t-primary: rgb(242 240 236);
+    --t-secondary: rgb(206 203 198);
+    --t-tertiary: rgb(156 153 148);
+    --t-quaternary: rgb(112 110 106);
+
+    /* Backgrounds */
+    --b-primary: rgb(28 28 26);
+    --b-primary-alpha: rgb(28 28 26 / 0.72);
+    --b-secondary: rgb(18 18 17);
+    --b-tertiary: rgb(42 42 39);
+    --b-primary-solid: rgb(242 240 236);
+    --b-primary-solid-hover: rgb(214 211 206);
+
+    /* Borders */
+    --br-primary: rgb(242 240 236);
+    --br-secondary: rgb(50 50 47);
+    --br-tertiary: rgb(38 38 35);
+
+    /* Lighter gradient-text stops for dark backgrounds */
+    --grad-text-1: rgb(120 158 255);
+    --grad-text-2: rgb(176 132 255);
+    --grad-text-3: rgb(255 120 186);
+    --grad-text-4: rgb(255 158 100);
+}
+
+.theme-dark {
+    --t-primary: rgb(245 245 247);
+    --t-secondary: rgb(210 210 215);
+    --t-tertiary: rgb(161 161 166);
+    --t-quaternary: rgb(110 110 115);
+
+    --b-primary: rgb(0 0 0);
+    --b-primary-alpha: rgb(0 0 0 / 0.72);
+    --b-secondary: rgb(22 22 23);
+    --b-tertiary: rgb(38 38 40);
+    --b-primary-solid: rgb(245 245 247);
+    --b-primary-solid-hover: rgb(210 210 215);
+
+    --br-primary: rgb(245 245 247);
+    --br-secondary: rgb(58 58 60);
+    --br-tertiary: rgb(38 38 40);
+
+    --grad-text-1: rgb(110 150 255);
+    --grad-text-2: rgb(170 120 255);
+    --grad-text-3: rgb(255 110 180);
+    --grad-text-4: rgb(255 150 90);
+
+}
+
+@theme inline {
+    --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+    --color-brand-400: var(--color-brand-400);
+    --color-brand-500: var(--color-brand-500);
+    --color-brand-600: var(--color-brand-600);
+    --color-brand-700: var(--color-brand-700);
+
+
+    --text-color-primary: var(--t-primary);
+    --text-color-secondary: var(--t-secondary);
+    --text-color-tertiary: var(--t-tertiary);
+    --text-color-quaternary: var(--t-quaternary);
+    --text-color-primary_on-solid: var(--b-primary);
+
+    --background-color-primary: var(--b-primary);
+    --background-color-primary_alpha: var(--b-primary-alpha);
+    --background-color-secondary: var(--b-secondary);
+    --background-color-tertiary: var(--b-tertiary);
+    --background-color-primary-solid: var(--b-primary-solid);
+    --background-color-primary-solid_hover: var(--b-primary-solid-hover);
+
+    --border-color-primary: var(--br-primary);
+    --border-color-secondary: var(--br-secondary);
+    --border-color-tertiary: var(--br-tertiary);
+    --outline-color-brand: var(--color-brand-500);
+
+    --color-fg-primary: var(--t-primary);
+    --color-fg-quaternary: var(--t-quaternary);
+    --color-fg-success-secondary: rgb(74 222 128);
+}

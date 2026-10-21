@@ -1,0 +1,198 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        @apply bg-secondary font-sans text-primary;
+        letter-spacing: -0.005em;
+    }
+
+    ::selection {
+        background: var(--b-primary-solid);
+        color: var(--b-primary);
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-4 outline-brand;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Slow drifting blobs for the aurora gradients */
+@keyframes drift-a {
+    50% {
+        transform: translate(12%, 8%) scale(1.12);
+    }
+}
+@keyframes drift-b {
+    50% {
+        transform: translate(-10%, 10%) scale(0.92);
+    }
+}
+@keyframes drift-c {
+    50% {
+        transform: translate(8%, -12%) scale(1.08);
+    }
+}
+@keyframes drift-d {
+    50% {
+        transform: translate(-12%, -6%) scale(1.15);
+    }
+}
+
+@utility animate-drift-a {
+    animation: drift-a 18s ease-in-out infinite;
+}
+@utility animate-drift-b {
+    animation: drift-b 22s ease-in-out infinite;
+}
+@utility animate-drift-c {
+    animation: drift-c 20s ease-in-out infinite;
+}
+@utility animate-drift-d {
+    animation: drift-d 24s ease-in-out infinite;
+}
+
+@utility text-gradient {
+    background-image: linear-gradient(95deg, var(--grad-text-1), var(--grad-text-2) 35%, var(--grad-text-3) 68%, var(--grad-text-4));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+/* Titles: Geist grotesque, shared by the hero and every heading */
+/* Display face for every heading: Switzer (Fontshare), a free grotesk close to Neue Montreal */
+@utility font-display {
+    font-family: "Switzer", var(--font-grotesk);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+}
+
+/* CTA effects — periodic shine sweep */
+@keyframes shine {
+    0%,
+    60% {
+        transform: translateX(-120%) skewX(-20deg);
+    }
+    100% {
+        transform: translateX(320%) skewX(-20deg);
+    }
+}
+
+@utility animate-shine {
+    animation: shine 3.2s ease-in-out infinite;
+}
+
+
+
+/* Expertise icon micro-animations (played once on hover) */
+@keyframes icon-lift {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-3px) scale(1.08);
+    }
+    70% {
+        transform: translateY(1px);
+    }
+}
+@keyframes icon-tilt {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    30% {
+        transform: rotate(-12deg) scale(1.05);
+    }
+    65% {
+        transform: rotate(6deg);
+    }
+}
+@keyframes icon-click {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(0.78) translate(1px, 1px);
+    }
+    60% {
+        transform: scale(1.12);
+    }
+}
+@keyframes icon-wiggle {
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+    20% {
+        transform: rotate(-10deg);
+    }
+    45% {
+        transform: rotate(8deg);
+    }
+    70% {
+        transform: rotate(-4deg);
+    }
+}
+
+/* Availability dot — expanding glow ring */
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.75);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+}
+
+@utility animate-pulse-ring {
+    animation: pulse-ring 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Case study drawer */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes fade-out {
+    to {
+        opacity: 0;
+    }
+}
+@keyframes drawer-in {
+    from {
+        transform: translateX(105%);
+    }
+}
+@keyframes drawer-out {
+    to {
+        transform: translateX(105%);
+    }
+}
