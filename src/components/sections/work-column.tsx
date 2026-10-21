@@ -138,9 +138,24 @@ const JourneyCard = () => (
                                 )}
                                 <p className="text-sm text-tertiary">{exp.period}</p>
                             </div>
-                            <p className="mt-1 text-sm text-tertiary">
-                                {exp.role} · {exp.context}
-                            </p>
+                            {/* Role and contracts on one line (current contract stands out), the company context below */}
+                            <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                                <p className="text-[15px] font-medium text-primary">{exp.role}</p>
+                                {exp.contracts?.map((contract, index) => (
+                                    <span
+                                        key={contract.label}
+                                        className={
+                                            index === 0
+                                                ? "inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] px-2.5 py-0.5 text-xs font-medium text-secondary ring-1 ring-white/[0.1] ring-inset"
+                                                : "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs text-tertiary ring-1 ring-white/[0.08] ring-inset"
+                                        }
+                                    >
+                                        {contract.label}
+                                        {contract.period && <span className="font-normal text-quaternary">{contract.period}</span>}
+                                    </span>
+                                ))}
+                            </div>
+                            <p className="mt-1.5 text-sm text-tertiary">{exp.context}</p>
                             <ul className="mt-4 space-y-2">
                                 {exp.highlights.map((item) => (
                                     <li key={item} className="flex gap-2.5 text-[15px] leading-relaxed text-secondary">

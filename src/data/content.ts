@@ -170,9 +170,7 @@ export const projects: Project[] = [
                 {
                     title: "Sélectionner un connecteur",
                     summary: "Choisir son ERP dans la liste des connecteurs disponibles.",
-                    paragraphs: [
-                        "Chaque **ERP** est représenté par son **logo** : l'utilisateur reconnaît le sien **d'un coup d'œil**.",
-                    ],
+                    paragraphs: ["Chaque **ERP** est représenté par son **logo** : l'utilisateur reconnaît le sien **d'un coup d'œil**."],
                     screen: {
                         label: "Écran 2",
                         description: "Liste des connecteurs disponibles",
@@ -469,6 +467,8 @@ export interface Experience {
     /** Optional logo in /public, shown instead of the company name. */
     logo?: string;
     role: string;
+    /** Contracts held in this role, current one first (e.g. CDI, then the work-study that led to it). */
+    contracts?: { label: string; period?: string }[];
     period: string;
     context: string;
     highlights: string[];
@@ -482,6 +482,10 @@ export const experiences: Experience[] = [
         company: "TRESO2",
         logo: "/logos/treso2.png",
         role: "UX/UI Designer",
+        contracts: [
+            { label: "CDI", period: "depuis 2025" },
+            { label: "Alternance", period: "2023 — 2025" },
+        ],
         period: "2023 — Actuel",
         context: "Plateforme SaaS de facturation électronique agréée.",
         highlights: [
@@ -495,6 +499,7 @@ export const experiences: Experience[] = [
         company: "HAVAS",
         logo: "/logos/havas.png",
         role: "UX/UI Designer",
+        contracts: [{ label: "Alternance" }],
         period: "2021 — 2022",
         context: "Groupe de communication et de conseil.",
         highlights: [
