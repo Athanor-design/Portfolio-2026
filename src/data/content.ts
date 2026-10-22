@@ -11,7 +11,7 @@ export const profile = {
     // TODO: drop your CV in /public with this name
     cv: "/cv-boris-courdouan.pdf",
     portrait: "/portrait.jpg" as string,
-    availability: "Disponible — Novembre 2026",
+    availability: "Disponible — Janvier 2027",
     location: "Paris 15e",
     expertises: ["Design system", "Maquettage", "Prototypage", "Tests utilisateur"],
 };
