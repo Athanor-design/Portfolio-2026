@@ -30,18 +30,15 @@ interface SummaryCardsProps {
 }
 
 const CORAL = "#f97066";
-const VIOLET = "var(--grad-violet)";
-// Same violet as a literal colour, for properties Motion animates (CSS variables can't be tweened)
-const VIOLET_HEX = "rgb(160, 120, 255)";
+// "Solution" colour: blue reads as information / action, between the red problem and the green result
+const BLUE = "rgb(90, 169, 255)";
 const GREEN = "#4ade80";
 
 /** False while the cards are off-screen: the looping visuals pause instead of running unseen. */
 const LoopContext = createContext(true);
 
 /** Caption row above each visual, like a chart legend. */
-const VisualLabel = ({ children }: { children: ReactNode }) => (
-    <p className="font-mono text-[10px] tracking-[0.12em] text-quaternary uppercase">{children}</p>
-);
+const VisualLabel = ({ children }: { children: ReactNode }) => <p className="text-xs text-quaternary">{children}</p>;
 
 /** Four-point star with concave sides (an astroid). */
 const Astroid = ({ className }: { className?: string }) => (
@@ -131,7 +128,7 @@ const AutoToggle = ({ play }: { play: boolean }) => (
                 <span className="relative flex h-5 w-9 shrink-0 items-center rounded-full bg-white/10">
                     <motion.span
                         className="absolute inset-0 rounded-full"
-                        style={{ backgroundColor: VIOLET }}
+                        style={{ backgroundColor: BLUE }}
                         initial={{ opacity: 0 }}
                         animate={play ? { opacity: 1 } : undefined}
                         transition={{ duration: 0.3, delay: 0.6 }}
@@ -331,7 +328,7 @@ const InvoiceSync = ({ play }: { play: boolean }) => {
                                                 key={k}
                                                 d={d}
                                                 fill="none"
-                                                stroke={VIOLET_HEX}
+                                                stroke={BLUE}
                                                 strokeWidth={0.6}
                                                 strokeDasharray={`${PULSE} ${length + PULSE + 10}`}
                                                 // From just before the start to past the end. The path ends on the node's stroke,
@@ -367,7 +364,7 @@ const InvoiceSync = ({ play }: { play: boolean }) => {
                     <span className="relative">
                         <span
                             className="relative flex h-10 w-20 flex-col items-center justify-center rounded-lg bg-[#1c1a24]"
-                            style={{ boxShadow: `inset 0 0 0 1px rgba(160,120,255,0.7), 0 0 18px -4px rgba(160,120,255,0.5)` }}
+                            style={{ boxShadow: `inset 0 0 0 1px rgba(90,169,255,0.7), 0 0 18px -4px rgba(90,169,255,0.5)` }}
                         >
                             <span className="relative text-[11px] leading-none font-semibold text-primary">TRESO2</span>
                             <span className="relative mt-1 text-[9px] leading-none text-tertiary">Invoice Hub</span>
@@ -764,7 +761,7 @@ export const SummaryCards = ({ headlines, problem, solution, result, visuals }: 
         },
         {
             label: "Solution",
-            color: VIOLET,
+            color: BLUE,
             title: headlines.solution,
             text: solution,
             visual: {
@@ -806,7 +803,8 @@ export const SummaryCards = ({ headlines, problem, solution, result, visuals }: 
                                 style={{ background: `radial-gradient(ellipse 70% 100% at 50% 0%, ${card.color}, transparent)` }}
                             />
 
-                            <p className="font-mono text-[11px] font-medium tracking-[0.14em] uppercase" style={{ color: card.color }}>
+                            {/* Label in the card's colour (red / blue / green), plain case rather than monospace caps */}
+                            <p className="text-sm font-medium" style={{ color: card.color }}>
                                 {card.label}
                             </p>
                             <h3 className="font-display mt-4 text-[1.5rem] leading-[1.15] text-balance text-primary">{card.title}</h3>

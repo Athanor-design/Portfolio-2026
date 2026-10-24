@@ -103,7 +103,7 @@ export const IntroPanel = ({ copied, onCopyEmail }: IntroPanelProps) => {
 
                 <motion.p {...fade(0.5)} className="mt-14 max-w-[34rem] text-[17px] leading-[1.7] text-pretty text-tertiary">
                     4 ans d'expérience en UX/UI, dont 3 en SaaS B2B finance. Je transforme des parcours techniques complexes en interfaces
-                    simples et intuitives, main dans la main avec les équipes produit et tech.
+                    simples et intuitives, en collaboration avec les équipes produit et tech.
                 </motion.p>
 
                 <motion.ul {...fade(0.55)} aria-label="Expertises" className="mt-7 flex flex-wrap gap-2">

@@ -30,6 +30,7 @@ import { LearningsRail } from "@/components/case-study/learnings-rail";
 import type { CaseStudyScreen, Palette, Project, TradeoffIcon } from "@/data/content";
 import { projects } from "@/data/content";
 import { useActiveSection } from "@/hooks/use-active-section";
+import { cx } from "@/utils/cx";
 import { screenSrcSet } from "@/utils/screen-src-set";
 
 const accents: Record<Palette, string> = {
@@ -143,8 +144,8 @@ const ScreenFrame = ({
                             {/* Floating element (e.g. the open profile menu), anchored in % so it follows the capture */}
                             {screen.overlay && (
                                 <motion.img
-                                    // Appears like a dropdown opening from the avatar once the capture is in view
-                                    initial={{ opacity: 0, y: -3, scale: 0.985 }}
+                                    // Menu: opens like a dropdown from the avatar. Card: a close-up that zooms in from the row it shows
+                                    initial={screen.overlay.card ? { opacity: 0, scale: 0.92 } : { opacity: 0, y: -3, scale: 0.985 }}
                                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                     viewport={{ once: true, amount: 0.6 }}
                                     transition={{ delay: 0.4, duration: 0.7, ease: EASE }}
@@ -152,7 +153,12 @@ const ScreenFrame = ({
                                     srcSet={screenSrcSet(screen.overlay.image, screen.overlay.width)}
                                     sizes={`${screen.overlay.width}px`}
                                     alt={screen.overlay.alt}
-                                    className="absolute h-auto origin-top-right drop-shadow-[0_16px_28px_rgba(0,0,0,0.28)] [image-rendering:-webkit-optimize-contrast]"
+                                    className={cx(
+                                        "absolute h-auto [image-rendering:-webkit-optimize-contrast]",
+                                        screen.overlay.card
+                                            ? "origin-center rounded-lg shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.55)]"
+                                            : "origin-top-right drop-shadow-[0_16px_28px_rgba(0,0,0,0.28)]",
+                                    )}
                                     style={{
                                         top: `${screen.overlay.top}%`,
                                         right: `${screen.overlay.right}%`,
@@ -316,12 +322,14 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg leading-[1.7] text-pretty text-tertiary">{project.summary}</p>
 
-                <dl className="mt-10 grid max-w-4xl grid-cols-2 gap-y-6 sm:grid-cols-4">
+                <dl className={`mt-10 grid max-w-4xl grid-cols-2 gap-y-6 ${project.impact ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
                     {[
                         ["Rôle", project.role],
                         ["Entreprise", project.company],
                         ["Année", project.year],
                         ["Thèmes", project.tags.join(", ")],
+                        // Key figure: real numbers from the project, no invented results
+                        ...(project.impact ? [["En chiffres", `${project.impact.value} ${project.impact.label}`]] : []),
                     ].map(([label, value]) => (
                         <div key={label} className="border-l border-white/[0.12] pr-3 pl-4">
                             <dt className="text-xs text-tertiary">{label}</dt>

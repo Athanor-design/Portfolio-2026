@@ -38,7 +38,15 @@ export interface CaseStudyScreen {
     noStage?: boolean;
     /** Element floating over the capture (e.g. an open menu), placed in % of the capture; `width` is its display width
      * on the 856px stage, with exact-size companions `<name>@1x.png` / `@2x.png`. */
-    overlay?: { image: string; alt: string; top: number; right: number; width: number };
+    overlay?: {
+        image: string;
+        alt: string;
+        top: number;
+        right: number;
+        width: number;
+        /** Close-up of a row cut from the capture: shown as a slightly enlarged card, zooming in from its own place. */
+        card?: boolean;
+    };
     /** Interactive replica shown instead of a screenshot (e.g. Figma's Variables panel fed with the real tokens). */
     component?: "figma-variables" | "color-anatomy";
     /**
@@ -100,7 +108,7 @@ export interface Project {
     year: string;
     role: string;
     tags: string[];
-    /** Optional key result, e.g. "−40 % de temps de saisie". Hidden when empty. */
+    /** Optional key figure (scope or result), e.g. "5 ERP connectés". Hidden when empty. */
     impact?: { value: string; label: string };
     /** Main screen capture in /public, shown in the glass bezel on the `palette` gradient. When empty, an illustrative dashboard is shown. */
     image?: string;
@@ -121,7 +129,9 @@ export const projects: Project[] = [
         company: "TRESO2",
         year: "2026",
         role: "UX/UI Designer",
-        tags: ["Intégrations", "Parcours B2B", "Recherche"],
+        tags: ["Intégration ERP", "Onboarding", "Divulgation progressive"],
+        // "Plus de 1 000 PME et ETI" : figure published on treso2.com (integrations page); connectors are offered to every client
+        impact: { value: "5", label: "connecteurs ERP, pour plus de 1 000 PME et ETI" },
         image: "/projets/connecteurs-erp/etape-1-profil.webp",
         href: "#/projets/connecteurs-erp",
         // Texts from Boris's case-study mockup; the summary-card headlines / solution / result are derived from it (TODO: confirm)
@@ -210,13 +220,14 @@ export const projects: Project[] = [
             ],
             tradeoffs: [
                 {
-                    title: "Intégrer son ERP plutôt que de le remplacer",
-                    description: "Conserver l'ERP existant de l'utilisateur au lieu de forcer une migration totale vers TRESO2.",
+                    title: "Se brancher sur l'ERP existant",
+                    description: "L'utilisateur garde son ERP : TRESO2 s'y connecte et récupère ses factures, sans migration.",
                     icon: "integration",
                 },
                 {
                     title: "Rattacher les connecteurs au profil",
-                    description: "La configuration appartient à l'utilisateur connecté, pas aux paramètres généraux de la plateforme.",
+                    description:
+                        "Chaque connecteur est rattaché au compte de l'utilisateur qui l'a configuré, directement dans son profil.",
                     icon: "profile",
                 },
                 {
@@ -244,7 +255,8 @@ export const projects: Project[] = [
         company: "TRESO2",
         year: "2025",
         role: "UX/UI Designer",
-        tags: ["Workflow", "Automatisation", "Parcours B2B"],
+        tags: ["Automatisation", "Workflow de validation", "Notifications"],
+        impact: { value: "−80 %", label: "de validations manuelles" },
         image: "/projets/rapprochement-factures/etape-1-parametrage.webp",
         href: "#/projets/rapprochement-factures",
         caseStudy: {
@@ -256,13 +268,13 @@ export const projects: Project[] = [
             problem:
                 "Même réconciliées par le système, les factures devaient être validées une à une : un vrai frein lors des gros imports, souvent remonté au support.",
             headlines: {
-                problem: "Une validation manuelle devenue inutile",
-                solution: "L'approbation automatique, là où on l'attend",
-                result: "Moins de clics, autant de contrôle",
+                problem: "Valider une à une des factures déjà réconciliées",
+                solution: "Approuver automatiquement les factures réconciliées",
+                result: "Moins de validations manuelles et de tickets support",
             },
             solution:
                 "Une approbation automatique des factures réconciliées, activable depuis l'écran de rapprochement et intégrée au workflow de validation existant.",
-            result: "Plus de validation une à une des factures déjà réconciliées, sans perdre le contrôle grâce aux validateurs de secours et aux notifications.",
+            result: "Plus de validation une à une des factures déjà réconciliées, sans perdre le contrôle. Les tickets support sur le sujet ont nettement chuté.",
             overview: [
                 {
                     label: "Écran 1",
@@ -284,7 +296,7 @@ export const projects: Project[] = [
                     // TODO: confirm step summaries
                     summary: "Un réglage unique, placé là où l'utilisateur configure déjà son rapprochement.",
                     paragraphs: [
-                        "L'automatisation repose sur des **seuils de tolérance** (la marge d'erreur acceptable), définis avec le **type de rapprochement** de chaque filiale.",
+                        "L'automatisation repose sur **2 seuils de tolérance** (quantité en %, prix unitaire en €), définis avec le **type de rapprochement** de chaque filiale : 2 ou 3 facteurs.",
                         "Un réglage fait **une seule fois**, à la création de l'espace.",
                         "Pour guider ce premier passage, un **lien de redirection** mène directement à l'écran d'activation de l'approbation automatique.",
                     ],
@@ -292,6 +304,15 @@ export const projects: Project[] = [
                         label: "Écran 1",
                         description: "Écran de rapprochement et seuils de tolérance",
                         image: "/projets/rapprochement-factures/etape-1-parametrage.webp",
+                        // 6.6 % larger than the original block so it fully covers it (758 px tall capture at 856 px)
+                        overlay: {
+                            image: "/projets/rapprochement-factures/automatisation-lien.png",
+                            alt: "Bloc Automatisation avec le lien « Aller dans Paramètres »",
+                            top: 79.21,
+                            right: 0.47,
+                            width: 510,
+                            card: true,
+                        },
                     },
                 },
                 {
@@ -299,7 +320,7 @@ export const projects: Project[] = [
                     summary: "L'automatisation s'insère dans le workflow de validation existant, avec un filet de sécurité.",
                     paragraphs: [
                         "L'utilisateur choisit à quelle **étape du workflow** intégrer l'automatisation.",
-                        "En cas d'échec, des **validateurs humains** prennent le relais.",
+                        "Hors tolérance, la facture reste dans le circuit normal : des **validateurs humains** prennent le relais.",
                     ],
                     screen: {
                         label: "Écran 2",
@@ -317,34 +338,52 @@ export const projects: Project[] = [
                     // TODO: written from the screen (the mockup reused step 2's text) — confirm or replace with the real copy
                     paragraphs: [
                         "Une notification **« Facture approuvée automatiquement »** rejoint les préférences de chaque utilisateur.",
-                        "**Désactivée par défaut**, elle s'active par email **en un clic**.",
+                        "**Désactivée par défaut** pour ne pas notifier des factures déjà sûres, elle s'active par email **en un clic**.",
                     ],
                     screen: {
                         label: "Écran 3",
                         description: "Préférences de notification de l'utilisateur",
                         image: "/projets/rapprochement-factures/etape-3-notifications.webp",
+                        overlay: {
+                            image: "/projets/rapprochement-factures/notification-auto.png",
+                            alt: "Notification « Facture approuvée automatiquement » activée",
+                            top: 79.97,
+                            right: 2.4,
+                            width: 626,
+                            card: true,
+                        },
                     },
                 },
             ],
+            // Ordered like the flow: where the option lives, how the user gets there, where it acts, then control
             tradeoffs: [
                 {
-                    title: "Adapter le parcours au modèle mental",
-                    description: "L'interface s'adapte à l'utilisateur, pas l'inverse.",
+                    title: "S'appuyer sur le modèle mental",
+                    description: "L'option se trouve sur l'écran de rapprochement, là où l'utilisateur règle déjà ses seuils de tolérance.",
                     icon: "mental-model",
                 },
                 {
-                    title: "Réduire la charge cognitive via une aide à la navigation",
-                    description: "Empêcher l'utilisateur de perdre le contexte de sa navigation.",
+                    title: "Réduire la charge cognitive",
+                    description:
+                        "Un lien sur l'écran de rapprochement mène directement à l'étape du workflow où activer l'approbation automatique : l'utilisateur garde le fil, sans chercher dans les paramètres.",
                     icon: "navigation",
                 },
                 {
-                    title: "Placer l'automatisation au bon moment du parcours",
-                    description: "L'activation se fait là où elle a du sens pour l'utilisateur.",
+                    title: "Placer l'automatisation dans le workflow existant",
+                    description:
+                        "L'utilisateur choisit l'étape du circuit de validation où l'approbation automatique intervient. Les autres étapes restent inchangées.",
                     icon: "timing",
                 },
                 {
-                    title: "Laisser les notifications flexibles",
-                    description: "Chaque utilisateur choisit d'être informé des approbations automatiques.",
+                    title: "Garder l'automatisation traçable",
+                    description:
+                        "Une facture approuvée automatiquement porte un statut dédié, distinct d'une validation manuelle : l'historique reste auditable.",
+                    icon: "status",
+                },
+                {
+                    title: "Laisser les notifications au choix",
+                    description:
+                        "Chaque utilisateur peut recevoir un email à chaque approbation automatique. L'option est désactivée par défaut pour éviter le bruit.",
                     icon: "notification",
                 },
             ],
@@ -358,9 +397,10 @@ export const projects: Project[] = [
         summary:
             "Structurer les tokens du design system sur le theming de shadcn/ui, pour faciliter la production de l'équipe dev qui utilise ce framework.",
         company: "TRESO2",
-        year: "2023 — Actuel",
+        year: "2023 – Actuel",
         role: "UX/UI Designer",
         tags: ["Design system", "Tokens", "Documentation"],
+        impact: { value: "682", label: "variables sur 2 thèmes" },
         cover: "/projets/design-system/couverture.webp",
         href: "#/projets/design-system",
         caseStudy: {
@@ -371,7 +411,7 @@ export const projects: Project[] = [
             problem:
                 "Deux plateformes développées indépendamment, avec des architectures de tokens incompatibles, ce qui freinait la scalabilité et alourdissait la collaboration design et dev.",
             headlines: {
-                problem: "Deux plateformes, deux architectures de tokens",
+                problem: "Deux plateformes aux tokens incompatibles",
                 solution: "Un design system aligné sur shadcn",
                 result: "Design et dev sur une base commune",
             },
@@ -484,9 +524,9 @@ export const experiences: Experience[] = [
         role: "UX/UI Designer",
         contracts: [
             { label: "CDI", period: "depuis 2025" },
-            { label: "Alternance", period: "2023 — 2025" },
+            { label: "Alternance", period: "2023–2025" },
         ],
-        period: "2023 — Actuel",
+        period: "2023 – Actuel",
         context: "Plateforme SaaS de facturation électronique agréée.",
         highlights: [
             "Conception d'interfaces pour des workflows complexes : validation, rapprochement de factures, conformité fournisseurs.",
@@ -500,7 +540,7 @@ export const experiences: Experience[] = [
         logo: "/logos/havas.png",
         role: "UX/UI Designer",
         contracts: [{ label: "Alternance" }],
-        period: "2021 — 2022",
+        period: "2021–2022",
         context: "Groupe de communication et de conseil.",
         highlights: [
             "Solutions responsive adaptées à chaque device : desktop, tablette, mobile.",

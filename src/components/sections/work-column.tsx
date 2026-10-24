@@ -6,7 +6,6 @@ import CopyIcon from "@/components/ui/animated-icons/copy-icon";
 import MailFilledIcon from "@/components/ui/animated-icons/mail-filled-icon";
 import type { AnimatedIconHandle } from "@/components/ui/animated-icons/types";
 import { DotGrid } from "@/components/ui/dot-grid";
-import { GradientMesh } from "@/components/ui/gradient-mesh";
 import { EASE } from "@/components/ui/reveal";
 import type { Palette, Project } from "@/data/content";
 import { experiences, mailtoHref, profile, projects } from "@/data/content";
@@ -42,14 +41,6 @@ const Frame = ({ children, className = "" }: { children: React.ReactNode; classN
 /** Project tile: dashboard on an aurora background; hover blurs it and reveals the title. */
 const ProjectTile = ({ project, index }: { project: Project; index: number }) => (
     <div className="relative">
-        {/* Soft neutral glow behind the card so the frosted glass has depth */}
-        <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-8 top-8 bottom-20 rounded-[40px] blur-3xl"
-            style={{
-                background: "radial-gradient(ellipse at 50% 40%, rgba(255,255,255,0.10), transparent 70%)",
-            }}
-        />
         <Frame>
             <a href={project.href} className="group block rounded-[10px] outline-offset-4">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-[10px]">
@@ -67,9 +58,10 @@ const ProjectTile = ({ project, index }: { project: Project; index: number }) =>
                             />
                         ) : (
                             <>
-                                <GradientMesh palette={project.palette} />
-                                {/* Screen sitting in a glass bezel: the real capture when provided, else an illustrative dashboard */}
-                                <div className="absolute top-[12%] left-[8%] w-[108%] rounded-[14px] bg-white/20 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_30px_60px_-20px_rgba(0,0,0,0.45)] ring-1 ring-white/40 backdrop-blur-xl">
+                                {/* Quiet stage (after Replit's project cards on Mobbin): a neutral surface a step above the page,
+                                    and the capture in a thin frame on top */}
+                                <div aria-hidden="true" className="absolute inset-0 bg-[#1b1b1a]" />
+                                <div className="absolute top-[12%] left-[8%] w-[108%] rounded-[14px] bg-white/[0.06] p-1.5 shadow-[0_30px_60px_-24px_rgba(0,0,0,0.8)] ring-1 ring-white/[0.1]">
                                     <div className="aspect-[16/10] overflow-hidden rounded-[9px]">
                                         {project.image ? (
                                             <img
@@ -101,8 +93,8 @@ const ProjectTile = ({ project, index }: { project: Project; index: number }) =>
                     <div>
                         <p className="text-sm text-tertiary">
                             {project.company} · {project.year}
-                            {/* Em dash after a single year; a range ("2023 — Actuel") already carries one */}
-                            {project.year.includes("—") ? " · " : " — "}
+                            {/* Em dash after a single year; a range ("2023 – Actuel") already carries one */}
+                            {/[–—]/.test(project.year) ? " · " : " — "}
                             {project.tags.join(", ")}
                         </p>
                         <h3 className="font-display mt-1 text-[1.4rem] leading-tight text-balance text-primary md:text-[1.75rem]">
