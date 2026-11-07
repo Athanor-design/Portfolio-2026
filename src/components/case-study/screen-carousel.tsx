@@ -31,6 +31,8 @@ export interface CarouselSlide {
     title: string;
     description: string;
     image?: string;
+    /** Slide shown on phones instead of `image` (same 896×582 stage, e.g. one large phone). */
+    mobileImage?: string;
     component?: "figma-variables" | "color-anatomy";
 }
 
@@ -82,6 +84,8 @@ export const ScreenCarousel = ({ slides, accent, onZoom }: ScreenCarouselProps) 
     const rootRef = useRef<HTMLDivElement>(null);
     const stageWrapRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
+    // Phones: the stage is scaled down a lot, so slides can swap in a mobile-specific image
+    const [isNarrow, setIsNarrow] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [hasFocus, setHasFocus] = useState(false);
     const inView = useInView(rootRef, { amount: 0.4 });
@@ -103,6 +107,7 @@ export const ScreenCarousel = ({ slides, accent, onZoom }: ScreenCarouselProps) 
             // No down-scaling on desktop: a fractional scale (e.g. 0.96) resamples the screens and blurs their text.
             // The stage is full-bleed and edge-masked, so it can simply be cropped at the sides instead.
             setScale(width >= 1200 ? 1 : Math.min(1, width / (width < 768 ? 960 : STAGE_W)));
+            setIsNarrow(width < 768);
         });
         observer.observe(el);
         return () => observer.disconnect();
@@ -185,6 +190,7 @@ export const ScreenCarousel = ({ slides, accent, onZoom }: ScreenCarouselProps) 
                         const item = slides[k % count];
                         const transition = reduce ? { duration: 0 } : MOVE;
                         const canZoom = !!item.image && !!onZoom;
+                        const shown = isNarrow && item.mobileImage ? item.mobileImage : item.image;
 
                         return (
                             // Slot anchor: a point on the arc, rotated to face the centre
@@ -229,10 +235,10 @@ export const ScreenCarousel = ({ slides, accent, onZoom }: ScreenCarouselProps) 
                                             <ColorAnatomy preview className="min-h-0 flex-1" />
                                         ) : item.component === "figma-variables" ? (
                                             <FigmaVariables preview autoplay={isActive && !reduce} className="min-h-0 flex-1" />
-                                        ) : item.image ? (
+                                        ) : shown ? (
                                             <img
-                                                src={item.image}
-                                                srcSet={screenSrcSet(item.image, 896)}
+                                                src={shown}
+                                                srcSet={screenSrcSet(shown, 896)}
                                                 sizes="896px"
                                                 alt=""
                                                 draggable={false}
@@ -271,7 +277,7 @@ export const ScreenCarousel = ({ slides, accent, onZoom }: ScreenCarouselProps) 
                                                     className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent"
                                                 />
                                                 {/* Same wording as the steps below ("Étape 01"), so screen ↔ step is obvious */}
-                                                <p className="relative mb-2 font-mono text-xs tracking-[0.14em] text-white/60 uppercase">
+                                                <p className="relative mb-2 font-mono text-xs text-white/60">
                                                     Étape {pad((k % count) + 1)}
                                                 </p>
                                                 <p className="relative font-display text-[2.25rem] leading-[1.05] tracking-[-0.035em] text-white">

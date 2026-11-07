@@ -11,6 +11,12 @@ import type { Palette, Project } from "@/data/content";
 import { experiences, mailtoHref, profile, projects } from "@/data/content";
 import { screenSrcSet } from "@/utils/screen-src-set";
 
+/** Drawn width of a cover filling the 16:10 tile: wider covers overflow it by their ratio over 16:10. */
+const coverSizes = (ratio: number) => {
+    const k = Math.max(1, ratio / 1.6).toFixed(3);
+    return `(min-width: 1024px) calc((min(100vw, 1600px) / 2 - 35px) * ${k}), calc((100vw - 55px) * ${k})`;
+};
+
 /** Widths of the PNG ladder generated next to each designed cover (`<name>-<width>.png`). */
 const COVER_WIDTHS = [
     320, 360, 400, 440, 480, 520, 560, 600, 640, 680, 720, 760, 800, 840, 880, 920, 960, 1000, 1080, 1200, 1320, 1440, 1560, 1680, 1800,
@@ -52,7 +58,7 @@ const ProjectTile = ({ project, index }: { project: Project; index: number }) =>
                             <img
                                 src={project.cover}
                                 srcSet={COVER_WIDTHS.map((w) => `${project.cover!.replace(/\.\w+$/, "")}-${w}.png ${w}w`).join(", ")}
-                                sizes="(min-width: 1024px) calc((min(100vw, 1600px) / 2 - 35px) * 1.112), calc((100vw - 55px) * 1.112)"
+                                sizes={coverSizes(project.coverRatio ?? 16 / 9)}
                                 alt=""
                                 className="size-full object-cover object-left [image-rendering:-webkit-optimize-contrast]"
                             />

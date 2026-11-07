@@ -8,14 +8,17 @@ import {
     LayersThree01,
     Lightning01,
     ClockFastForward,
+    CheckVerified01,
     Compass03,
     Link01,
+    PenTool01,
     Rows03,
+    Trophy01,
     UserCircle,
     Users01,
 } from "@untitledui/icons";
-import { type FC, type MouseEvent, useEffect, useMemo, useState } from "react";
-import { motion } from "motion/react";
+import { type FC, type MouseEvent, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView } from "motion/react";
 import { DashboardMock } from "@/components/ui/dashboard-mock";
 import { GradientMesh } from "@/components/ui/gradient-mesh";
 import { EASE } from "@/components/ui/reveal";
@@ -41,10 +44,8 @@ const accents: Record<Palette, string> = {
     mint: "#11a676",
 };
 
-/** Small uppercase section label. */
-const Eyebrow = ({ children }: { children: React.ReactNode }) => (
-    <p className="text-xs font-medium tracking-[0.12em] text-tertiary uppercase">{children}</p>
-);
+/** Small section label, sentence case. */
+const Eyebrow = ({ children }: { children: React.ReactNode }) => <p className="text-sm font-medium text-tertiary">{children}</p>;
 
 /** Section title block shared by every part of the case study. */
 const SectionHeading = ({ eyebrow, title }: { eyebrow: string; title: string }) => (
@@ -82,17 +83,258 @@ const emphasize = (text: string) =>
 const zoomButton =
     "block w-full cursor-zoom-in text-left outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-4 focus-visible:ring-offset-secondary";
 
+/**
+ * Mobile screens (after DICE / Wise on Mobbin): each phone sits in its own quiet card, cut by the card's bottom edge so
+ * the screen stays large, with its own caption below. The row scrolls sideways when it doesn't fit (one phone at a time
+ * on a phone). Screens are drawn at their exact 216px width; the thin bezel is CSS.
+ */
+type PhoneTheme = "dark" | "light";
+
+/** Segmented Sombre / Clair switch above a phone row; the choice is shared by every step of the case study. */
+const ThemeSwitch = ({ id, value, onChange }: { id: string; value: PhoneTheme; onChange: (theme: PhoneTheme) => void }) => (
+    <div
+        role="radiogroup"
+        aria-label="Thème de l'app"
+        className="flex w-fit gap-0.5 rounded-lg bg-white/[0.04] p-0.5 ring-1 ring-white/[0.08] ring-inset"
+    >
+        {(
+            [
+                ["dark", "Sombre"],
+                ["light", "Clair"],
+            ] as const
+        ).map(([key, label]) => (
+            <button
+                key={key}
+                type="button"
+                role="radio"
+                aria-checked={value === key}
+                onClick={() => onChange(key)}
+                className={cx(
+                    "relative cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium outline-none transition duration-100 ease-linear focus-visible:ring-2 focus-visible:ring-white/60",
+                    value === key ? "text-primary" : "text-tertiary hover:text-secondary",
+                )}
+            >
+                {value === key && (
+                    <motion.span
+                        layoutId={`phone-theme-${id}`}
+                        transition={{ type: "spring", bounce: 0.15, duration: 0.35 }}
+                        className="absolute inset-0 rounded-md bg-white/[0.1] shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
+                    />
+                )}
+                <span className="relative">{label}</span>
+            </button>
+        ))}
+    </div>
+);
+
+/** `<name>.png` → `<name>-light.png` (the same screen in the app's light theme). */
+const lightOf = (src: string) => src.replace(/\.png$/, "-light.png");
+
+/**
+ * Mobile screens (after DICE / Wise on Mobbin): each phone sits in its own quiet card, cut by the card's bottom edge so
+ * the screen stays large, with its own caption below. The row scrolls sideways when it doesn't fit (one phone at a time
+ * on a phone). Screens are drawn at their exact 216px width; the thin bezel is CSS. With a light version, both themes
+ * are stacked and cross-fade.
+ */
+const PhoneRow = ({
+    phones,
+    theme,
+    header,
+    onZoom,
+}: {
+    phones: NonNullable<CaseStudyScreen["phones"]>;
+    theme?: PhoneTheme;
+    header?: ReactNode;
+    onZoom: (image: LightboxImage) => void;
+}) => {
+    const rowRef = useRef<HTMLDivElement>(null);
+    const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+    // Entrance is driven by the row (vertical scroll): a phone peeking past the row's edge still appears
+    const inView = useInView(rowRef, { once: true, amount: 0.3 });
+    const [edges, setEdges] = useState({
+        overflow: false,
+        start: true,
+        end: false,
+    });
+
+    // Arrows only when the row overflows (phone widths), each disabled at its end
+    useEffect(() => {
+        const row = rowRef.current;
+        if (!row) return;
+        const update = () =>
+            setEdges({
+                overflow: row.scrollWidth > row.clientWidth + 1,
+                start: row.scrollLeft <= 1,
+                end: row.scrollLeft + row.clientWidth >= row.scrollWidth - 1,
+            });
+        update();
+        row.addEventListener("scroll", update, { passive: true });
+        const observer = new ResizeObserver(update);
+        observer.observe(row);
+        return () => {
+            row.removeEventListener("scroll", update);
+            observer.disconnect();
+        };
+    }, []);
+
+    const cardStep = () => {
+        const row = rowRef.current!;
+        const first = row.children[0] as HTMLElement | undefined;
+        return first ? first.offsetWidth + 16 : row.clientWidth;
+    };
+    const page = (direction: 1 | -1) =>
+        rowRef.current?.scrollBy({
+            left: direction * cardStep(),
+            behavior: "smooth",
+        });
+
+    // Mouse drag-to-scroll (touch already scrolls natively); a drag never opens the lightbox
+    const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+        if (event.pointerType !== "mouse" || !edges.overflow) return;
+        drag.current = {
+            x: event.clientX,
+            left: event.currentTarget.scrollLeft,
+            moved: false,
+        };
+    };
+    const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+        const d = drag.current;
+        if (!d) return;
+        const dx = event.clientX - d.x;
+        if (!d.moved && Math.abs(dx) < 5) return;
+        if (!d.moved) {
+            d.moved = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            event.currentTarget.style.scrollSnapType = "none";
+        }
+        event.currentTarget.scrollLeft = d.left - dx;
+    };
+    const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+        const d = drag.current;
+        drag.current = null;
+        if (!d?.moved) return;
+        const row = event.currentTarget;
+        const step = cardStep();
+        const target = Math.round(row.scrollLeft / step) * step;
+        row.scrollTo({ left: target, behavior: "smooth" });
+        window.setTimeout(() => (row.style.scrollSnapType = ""), 400);
+        // Swallow the click that follows the drag
+        row.addEventListener("click", (e) => e.stopPropagation(), {
+            capture: true,
+            once: true,
+        });
+    };
+
+    const arrow =
+        "flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white/[0.04] text-secondary ring-1 ring-white/[0.08] ring-inset outline-none transition duration-100 ease-linear hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-white/60 disabled:cursor-default disabled:opacity-40 disabled:hover:bg-white/[0.04]";
+
+    return (
+        <>
+            {(header || edges.overflow) && (
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    {edges.overflow ? (
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                aria-label="Écran précédent"
+                                disabled={edges.start}
+                                onClick={() => page(-1)}
+                                className={arrow}
+                            >
+                                <ArrowLeft className="size-4" aria-hidden="true" />
+                            </button>
+                            <button type="button" aria-label="Écran suivant" disabled={edges.end} onClick={() => page(1)} className={arrow}>
+                                <ArrowRight className="size-4" aria-hidden="true" />
+                            </button>
+                        </div>
+                    ) : (
+                        <span />
+                    )}
+                    {header}
+                </div>
+            )}
+            <div
+                ref={rowRef}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                onDragStart={(event) => event.preventDefault()}
+                className={cx(
+                    "-mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:scroll-px-0 md:px-0",
+                    edges.overflow && "cursor-grab active:cursor-grabbing",
+                )}
+            >
+                {phones.map((phone, i) => {
+                    const shown = theme === "light" ? lightOf(phone.image) : phone.image;
+                    return (
+                        <figure key={phone.image} className="w-[288px] shrink-0 snap-start md:min-w-[260px] md:flex-1 md:shrink">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onZoom({
+                                        src: shown.replace(/\.png$/, "@2x.png"),
+                                        alt: phone.caption,
+                                    })
+                                }
+                                aria-label={`Agrandir l'écran : ${phone.caption}`}
+                                className={`${zoomButton} relative flex h-[420px] justify-center overflow-hidden rounded-xl bg-white/[0.04] pt-9 ring-1 ring-white/[0.08] ring-inset`}
+                            >
+                                <motion.span
+                                    initial={{ opacity: 0, y: 28 }}
+                                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                                    transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
+                                    className="block h-fit rounded-[34px] bg-[#0b0b0c] p-[5px] shadow-[0_0_0_1px_rgba(255,255,255,0.14)]"
+                                >
+                                    <span className="relative block">
+                                        <img
+                                            src={phone.image}
+                                            srcSet={screenSrcSet(phone.image, 216)}
+                                            sizes="216px"
+                                            alt={theme === "light" ? "" : phone.caption}
+                                            loading="lazy"
+                                            className="block h-auto w-[216px] rounded-[29px] [image-rendering:-webkit-optimize-contrast]"
+                                        />
+                                        {theme && (
+                                            <img
+                                                src={lightOf(phone.image)}
+                                                srcSet={screenSrcSet(lightOf(phone.image), 216)}
+                                                sizes="216px"
+                                                alt={theme === "light" ? phone.caption : ""}
+                                                loading="lazy"
+                                                className={cx(
+                                                    "absolute inset-0 block h-auto w-[216px] rounded-[29px] transition-opacity duration-300 ease-out [image-rendering:-webkit-optimize-contrast]",
+                                                    theme === "light" ? "opacity-100" : "opacity-0",
+                                                )}
+                                            />
+                                        )}
+                                    </span>
+                                </motion.span>
+                            </button>
+                            <figcaption className="px-1 pt-3 text-sm leading-snug text-pretty text-tertiary">{phone.caption}</figcaption>
+                        </figure>
+                    );
+                })}
+            </div>
+        </>
+    );
+};
+
 /** Screenshot frame with its caption; clicking a capture opens it 1:1 in the lightbox. */
 const ScreenFrame = ({
     screen,
     palette,
     variant,
     onZoom,
+    phoneTheme,
+    onPhoneTheme,
 }: {
     screen: CaseStudyScreen;
     palette: Palette;
     variant: number;
     onZoom: (image: LightboxImage) => void;
+    phoneTheme?: PhoneTheme;
+    onPhoneTheme?: (theme: PhoneTheme) => void;
 }) => (
     <figure>
         <div className={`relative ${screen.detail ? "md:mb-20" : ""}`}>
@@ -100,14 +342,25 @@ const ScreenFrame = ({
             {/* Screenshots keep tight corners; the Figma panel replica gets Figma's rounder window radius */}
             <div
                 className={
-                    screen.gallery
+                    screen.gallery || screen.phones
                         ? ""
-                        : `overflow-hidden bg-[#1e1e20] shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_30px_70px_-25px_rgba(0,0,0,0.85)] ${
+                        : `overflow-hidden bg-[#1e1e20] shadow-[0_0_0_1px_rgba(255,255,255,0.12)] ${
                               screen.component ? "rounded-[14px]" : "rounded-md"
                           }`
                 }
             >
-                {screen.gallery ? (
+                {screen.phones ? (
+                    <PhoneRow
+                        phones={screen.phones}
+                        theme={screen.phonesLight ? phoneTheme : undefined}
+                        header={
+                            screen.phonesLight && phoneTheme && onPhoneTheme ? (
+                                <ThemeSwitch id={screen.label} value={phoneTheme} onChange={onPhoneTheme} />
+                            ) : undefined
+                        }
+                        onZoom={onZoom}
+                    />
+                ) : screen.gallery ? (
                     <StyleGuideTabs items={screen.gallery} />
                 ) : screen.component === "color-anatomy" ? (
                     <ColorAnatomy className="md:h-[560px]" />
@@ -138,7 +391,7 @@ const ScreenFrame = ({
                                 className={
                                     screen.noStage
                                         ? "block h-auto w-full [image-rendering:-webkit-optimize-contrast]"
-                                        : "block h-auto w-full rounded-tl-md shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_20px_50px_-20px_rgba(0,0,0,0.8)] [image-rendering:-webkit-optimize-contrast]"
+                                        : "block h-auto w-full rounded-tl-md shadow-[0_0_0_1px_rgba(255,255,255,0.08)] [image-rendering:-webkit-optimize-contrast]"
                                 }
                             />
                             {/* Floating element (e.g. the open profile menu), anchored in % so it follows the capture */}
@@ -156,8 +409,8 @@ const ScreenFrame = ({
                                     className={cx(
                                         "absolute h-auto [image-rendering:-webkit-optimize-contrast]",
                                         screen.overlay.card
-                                            ? "origin-center rounded-lg shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_24px_48px_-12px_rgba(0,0,0,0.55)]"
-                                            : "origin-top-right drop-shadow-[0_16px_28px_rgba(0,0,0,0.28)]",
+                                            ? "origin-center rounded-lg shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_8px_16px_-8px_rgba(0,0,0,0.3)]"
+                                            : "origin-top-right drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]",
                                     )}
                                     style={{
                                         top: `${screen.overlay.top}%`,
@@ -178,9 +431,14 @@ const ScreenFrame = ({
             {screen.detail && (
                 <motion.button
                     type="button"
-                    onClick={() => onZoom({ src: screen.detail!.image, alt: screen.detail!.description })}
+                    onClick={() =>
+                        onZoom({
+                            src: screen.detail!.image,
+                            alt: screen.detail!.description,
+                        })
+                    }
                     aria-label={`Agrandir : ${screen.detail.description}`}
-                    className="absolute right-[-27px] bottom-[-92px] hidden w-[420px] cursor-zoom-in rounded-md shadow-[0_40px_80px_-20px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.12)] outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:block"
+                    className="absolute right-[-27px] bottom-[-92px] hidden w-[420px] cursor-zoom-in rounded-md shadow-[0_0_0_1px_rgba(255,255,255,0.12)] outline-none focus-visible:ring-2 focus-visible:ring-white/60 md:block"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-80px" }}
@@ -254,6 +512,9 @@ const tradeoffIcons: Record<TradeoffIcon, FC<{ className?: string }>> = {
     unification: LayersThree01,
     friction: Lightning01,
     learning: GraduationHat01,
+    reward: Trophy01,
+    confirm: CheckVerified01,
+    craft: PenTool01,
 };
 
 /** Sticky "on this page" index; highlights the section being read (Attio / Contractbook). */
@@ -263,7 +524,7 @@ const TableOfContents = ({ items }: { items: { id: string; label: string }[] }) 
 
     return (
         <nav aria-label="Sur cette page" className="sticky top-24 hidden self-start lg:block">
-            <p className="text-xs font-medium tracking-[0.12em] text-quaternary uppercase">Sur cette page</p>
+            <p className="text-sm font-medium text-quaternary">Sur cette page</p>
             <ul className="mt-4 border-l border-white/[0.08]">
                 {items.map((item) => {
                     const isActive = item.id === active;
@@ -300,7 +561,10 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
         () =>
             study
                 ? [
-                      ...study.steps.map((step, i) => ({ id: `cs-step-${i + 1}`, label: `${pad(i + 1)} · ${step.title}` })),
+                      ...study.steps.map((step, i) => ({
+                          id: `cs-step-${i + 1}`,
+                          label: `${pad(i + 1)} · ${step.title}`,
+                      })),
                       { id: "cs-tradeoffs", label: "Arbitrages" },
                   ]
                 : [],
@@ -308,6 +572,8 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
     );
     // Screenshot opened at its real size (carousel or any step capture)
     const [zoomed, setZoomed] = useState<LightboxImage | null>(null);
+    // Theme of the mobile app's screens (Sombre / Clair), shared by every step
+    const [phoneTheme, setPhoneTheme] = useState<PhoneTheme>("dark");
 
     return (
         <div className="mx-auto max-w-[1240px] px-5 pt-12 pb-20 md:px-10 md:pt-20">
@@ -325,7 +591,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                 <dl className={`mt-10 grid max-w-4xl grid-cols-2 gap-y-6 ${project.impact ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
                     {[
                         ["Rôle", project.role],
-                        ["Entreprise", project.company],
+                        [project.personal ? "Cadre" : "Entreprise", project.company],
                         ["Année", project.year],
                         ["Thèmes", project.tags.join(", ")],
                         // Key figure: real numbers from the project, no invented results
@@ -346,6 +612,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                             title: step.title,
                             description: step.screen.description,
                             image: step.screen.image,
+                            mobileImage: step.screen.mobileImage,
                             component: step.screen.component,
                         }))}
                     />
@@ -397,7 +664,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                                             if (flow)
                                                 return (
                                                     <div key={paragraph} className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-2">
-                                                        <span className="text-[13px] text-quaternary">{flow[1]}</span>
+                                                        <span className="text-sm text-quaternary">{flow[1]}</span>
                                                         <span className="flex flex-wrap items-center gap-1.5">
                                                             {flow[2].split(" → ").map((stage, index) => (
                                                                 <span key={stage} className="flex items-center gap-1.5">
@@ -407,7 +674,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                                                                             aria-hidden="true"
                                                                         />
                                                                     )}
-                                                                    <span className="rounded-md bg-white/[0.06] px-2.5 py-1 text-[13px] font-medium text-secondary ring-1 ring-white/[0.08] ring-inset">
+                                                                    <span className="rounded-md bg-white/[0.06] px-2.5 py-1 text-sm font-medium text-secondary ring-1 ring-white/[0.08] ring-inset">
                                                                         {stage}
                                                                     </span>
                                                                 </span>
@@ -417,7 +684,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                                                 );
                                             return item ? (
                                                 <div key={paragraph} className="flex gap-3 py-1">
-                                                    <span className="mt-[3px] flex size-5 shrink-0 items-center justify-center rounded-md bg-white/[0.06] text-[11px] font-medium text-secondary tabular-nums">
+                                                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-white/[0.06] text-xs font-medium text-secondary tabular-nums">
                                                         {item[1]}
                                                     </span>
                                                     <p className="text-base leading-[1.6] text-pretty text-tertiary">
@@ -435,7 +702,14 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                                         })}
                                     </div>
                                     <div className="mt-8">
-                                        <ScreenFrame screen={step.screen} palette={project.palette} variant={i} onZoom={setZoomed} />
+                                        <ScreenFrame
+                                            screen={step.screen}
+                                            palette={project.palette}
+                                            variant={i}
+                                            onZoom={setZoomed}
+                                            phoneTheme={phoneTheme}
+                                            onPhoneTheme={setPhoneTheme}
+                                        />
                                     </div>
                                 </Section>
                             ))}
@@ -444,12 +718,15 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                             <Section className="mt-24 grid gap-10 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-14">
                                 <div id="cs-tradeoffs" className="scroll-mt-24 md:sticky md:top-24 md:self-start">
                                     <SectionHeading eyebrow="Arbitrages" title="Les choix qui ont guidé la solution" />
-                                    <p className="mt-4 text-[15px] leading-[1.65] text-pretty text-tertiary">
+                                    <p className="mt-4 text-base leading-[1.65] text-pretty text-tertiary">
                                         Les principes UX qui ont orienté chaque décision de conception.
                                     </p>
                                 </div>
                                 <LearningsRail
-                                    items={study.tradeoffs.map((item) => ({ ...item, icon: tradeoffIcons[item.icon ?? "mental-model"] }))}
+                                    items={study.tradeoffs.map((item) => ({
+                                        ...item,
+                                        icon: tradeoffIcons[item.icon ?? "mental-model"],
+                                    }))}
                                 />
                             </Section>
                         </div>
@@ -476,7 +753,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                                 {next.title}
                             </p>
                         </div>
-                        <span className="flex h-12 w-fit shrink-0 items-center gap-2 rounded-full bg-white pr-4 pl-5 text-sm font-semibold text-[#141413] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] transition-[transform,gap,background-color,box-shadow] duration-300 ease-out group-hover:scale-[1.05] group-hover:gap-3 group-hover:bg-[#e9e7e2] group-hover:shadow-[0_0_0_4px_rgba(255,255,255,0.12),0_14px_40px_-8px_rgba(255,255,255,0.25)]">
+                        <span className="flex h-12 w-fit shrink-0 items-center gap-2 rounded-full bg-white pr-4 pl-5 text-sm font-medium text-[#141413] transition-[gap,background-color] duration-200 ease-out group-hover:gap-3 group-hover:bg-[#e9e7e2]">
                             Voir le projet
                             <ArrowRight className="size-4 transition duration-300 group-hover:translate-x-0.5" aria-hidden="true" />
                         </span>
