@@ -25,6 +25,8 @@ interface SummaryCardsProps {
     problem: string;
     solution: string;
     result: string;
+    /** Label of the third card, "Résultat" by default (e.g. "Prochaine étape" for a project not launched yet). */
+    resultLabel?: string;
     /** Which project story the mini-visuals tell; without it the cards show text only. */
     visuals?: SummaryVisuals;
 }
@@ -740,7 +742,7 @@ const ModeSwitch = () => {
 
 export type SummaryVisuals = "invoice-automation" | "erp-connectors" | "design-system";
 
-export const SummaryCards = ({ headlines, problem, solution, result, visuals }: SummaryCardsProps) => {
+export const SummaryCards = ({ headlines, problem, solution, result, resultLabel = "Résultat", visuals }: SummaryCardsProps) => {
     const ref = useRef<HTMLDivElement>(null);
     const inView = useInView(ref, { once: true, amount: 0.3 });
     const reduce = useReducedMotion();
@@ -771,7 +773,7 @@ export const SummaryCards = ({ headlines, problem, solution, result, visuals }: 
             }[visuals ?? "invoice-automation"],
         },
         {
-            label: "Résultat",
+            label: resultLabel,
             color: GREEN,
             title: headlines.result,
             text: result,

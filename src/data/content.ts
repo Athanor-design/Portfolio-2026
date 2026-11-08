@@ -106,6 +106,8 @@ export interface CaseStudy {
     solution: string;
     /** Qualitative outcome (no metrics available). */
     result: string;
+    /** Label of the result card, "Résultat" by default. */
+    resultLabel?: string;
     /** Illustrated mini-visuals under the summary cards; they're specific to a project, so opt-in. */
     summaryVisuals?: "invoice-automation" | "erp-connectors" | "design-system";
     overview: CaseStudyScreen[];
@@ -523,13 +525,12 @@ export const projects: Project[] = [
         palette: "mint",
         title: "Ne plus rater une exposition à Paris",
         summary:
-            "Savoir ce qu'il y a à voir à Paris côté art demande de jongler entre les sites des musées, les agendas et les réseaux. J'ai conçu ArtPass et je l'ai développée avec Claude Code : une app mobile qui réunit les expos et transforme chaque sortie en souvenir à collectionner.",
+            "Trouver une sortie culturelle à Paris oblige à croiser les sites des musées, les agendas et les réseaux. J'ai conçu ArtPass et je l'ai développée avec Claude Code : une app mobile qui réunit expositions, musées, vernissages et lieux éphémères de Paris, et transforme chaque sortie en expérience gamifiée et en souvenir à collectionner.",
         company: "Projet personnel",
         personal: true,
         year: "2026",
         role: "UX/UI Designer",
         tags: ["App mobile", "Gamification", "Découverte culturelle"],
-        impact: { value: "20", label: "expositions dans 24 lieux parisiens" },
         cover: "/projets/artpass/couverture.png",
         coverRatio: 16 / 10,
         href: "#/projets/artpass",
@@ -539,54 +540,55 @@ export const projects: Project[] = [
             consequences:
                 "L'info est éparpillée entre les sites des musées, les agendas culturels et les réseaux sociaux. On découvre une expo trop tard, et rien ne garde la trace de celles qu'on a vues.",
             problem:
-                "L'info sur les expos parisiennes est éparpillée entre les sites des musées, les agendas et les réseaux. On rate des expos faute de les voir passer, et rien ne garde la trace de celles qu'on a vues.",
+                "Pour savoir quoi voir à Paris, il faut croiser les sites des musées, les agendas culturels et les réseaux sociaux. Les visiteurs en repèrent souvent trop tard, et rien ne valorise leurs sorties une fois faites.",
             headlines: {
-                problem: "Des infos éparpillées, des expos ratées",
-                solution: "Un agenda des expos et des sorties qui se collectionnent",
-                result: "Un prototype complet, avant le lancement",
+                problem: "Une offre culturelle dispersée",
+                solution: "Centraliser l'offre et récompenser chaque visite",
+                result: "Entrer en phase de tests",
             },
             solution:
-                "Une app mobile qui réunit les expos de Paris, renvoie vers la billetterie officielle du lieu, puis transforme chaque visite confirmée en billet souvenir, tampon de passeport et trophée.",
-            result: "Un prototype développé avec Claude Code et testable de bout en bout. Prochaines étapes : valider le besoin en entretiens, puis lancer l'app sur l'App Store.",
+                "ArtPass réunit expositions, musées, vernissages et lieux éphémères de Paris dans une app mobile : accueil, carte et agenda pour les repérer, réservation sur la billetterie du lieu. Chaque visite confirmée rapporte un billet souvenir, un tampon et de l'expérience, pour donner envie de multiplier les sorties.",
+            resultLabel: "Prochaine étape",
+            result: "Le prototype, développé avec Claude Code, couvre le parcours de bout en bout. Des tests auprès d'amateurs d'expositions parisiens doivent confirmer le besoin et calibrer la gamification, avant le lancement sur l'App Store.",
             overview: [
-                { label: "Écran 1", description: "Voir ce qui est à l'affiche, ce qui ferme bientôt et ce qui est gratuit." },
-                { label: "Écran 2", description: "Réserver sur la billetterie officielle du lieu, puis ajouter la visite." },
-                { label: "Écran 3", description: "Confirmer sa visite pour recevoir son billet souvenir." },
-                { label: "Écran 4", description: "Remplir son passeport et débloquer des trophées." },
+                { label: "Écran 1", description: "Trouver quoi voir : les expos du moment, la carte et l'agenda." },
+                { label: "Écran 2", description: "Choisir sa date, puis réserver sur la billetterie officielle du lieu." },
+                { label: "Écran 3", description: "Garder son billet, puis confirmer sa visite." },
+                { label: "Écran 4", description: "Collectionner tampons, trophées et billets souvenir." },
             ],
             steps: [
                 {
                     title: "Découvrir",
-                    summary: "Voir d'un coup d'œil ce qui est à l'affiche, ce qui ferme bientôt et ce qui est gratuit.",
+                    summary: "Trois façons de trouver quoi voir : les expos du moment, la carte autour de soi et l'agenda.",
                     paragraphs: [
-                        "L'accueil s'ouvre sur un **carrousel de billets** : les expos les plus urgentes, avec en tête une sélection éditoriale, « L'expo de la saison ».",
-                        "Juste en dessous, **« Bientôt terminées »** écrit l'échéance en toutes lettres (« Plus que 2 jours ») pour ne plus rater une expo.",
-                        "Le catalogue se filtre par **catégorie** et par **trois filtres rapides** : Aujourd'hui, Week-end, Gratuit. La **carte** montre les lieux à l'affiche avec leur prix minimum.",
+                        "L'accueil met en avant les **expos les plus populaires**, avec en tête **celle à ne pas rater**.",
+                        "La **carte** montre toutes les expos à voir **autour de soi**, par type : expositions temporaires, vernissages, lieux éphémères et collections permanentes des musées.",
+                        "L'**agenda** part de la date du jour, ou de la **période passée à Paris**, pour cibler les expos à voir sur ces dates.",
                     ],
                     screen: {
                         label: "Écran 1",
-                        description: "Accueil, expos qui ferment bientôt et carte des lieux",
+                        description: "Accueil, carte des lieux et agenda de la semaine",
                         image: "/projets/artpass/etape-1-decouvrir.png",
                         mobileImage: "/projets/artpass/etape-1-decouvrir-mobile.png",
                         noStage: true,
                         phonesLight: true,
                         phones: [
                             { image: "/projets/artpass/ecrans/home-top.png", caption: "Les expos les plus urgentes, en billets" },
-                            { image: "/projets/artpass/ecrans/home-scroll.png", caption: "Ce qui ferme bientôt, et trois filtres rapides" },
-                            { image: "/projets/artpass/ecrans/carte.png", caption: "Les lieux à l'affiche, avec leur prix minimum" },
+                            { image: "/projets/artpass/ecrans/carte.png", caption: "Les lieux à l'affiche, sur la carte" },
+                            { image: "/projets/artpass/ecrans/agenda.png", caption: "Nocturnes, vernissages et derniers jours" },
                         ],
                     },
                 },
                 {
                     title: "Réserver",
-                    summary: "ArtPass ne vend pas de billets : il renvoie vers la billetterie officielle du lieu.",
+                    summary: "ArtPass ne vend pas de billets : il prépare la visite, puis renvoie vers la billetterie officielle du lieu.",
                     paragraphs: [
-                        "La fiche expo réunit l'essentiel : **dates**, **horaires**, **prix indicatifs** et les amis qui veulent y aller.",
-                        "**« Réserver »** ouvre le site du lieu. Au retour, l'app demande **« Vous avez pris vos billets ? »** et ajoute la visite à Mes visites en un geste.",
+                        "La fiche expo réunit l'essentiel : **dates**, **ordre de prix**, **description**. On peut aussi l'**ajouter à une liste partagée** entre amis, ou voir les **amis qui y sont allés**.",
+                        "**« Réserver »** demande d'abord la **date de visite**, puis ouvre le **site du lieu** sur cette période pour acheter ses billets.",
                     ],
                     screen: {
                         label: "Écran 2",
-                        description: "Fiche expo, puis ajout de la visite après la réservation",
+                        description: "Fiche expo, puis choix de la date avant la billetterie",
                         image: "/projets/artpass/etape-2-reserver.png",
                         mobileImage: "/projets/artpass/etape-2-reserver-mobile.png",
                         noStage: true,
@@ -594,7 +596,7 @@ export const projects: Project[] = [
                         phones: [
                             { image: "/projets/artpass/ecrans/expo-top.png", caption: "La fiche de l'expo" },
                             { image: "/projets/artpass/ecrans/expo-scroll.png", caption: "Dates, prix indicatifs et amis intéressés" },
-                            { image: "/projets/artpass/ecrans/reserver-sheet.png", caption: "Au retour de la billetterie, la visite s'ajoute" },
+                            { image: "/projets/artpass/ecrans/reserver-sheet.png", caption: "Le choix de la date de visite" },
                         ],
                     },
                 },
@@ -602,77 +604,70 @@ export const projects: Project[] = [
                     title: "Confirmer sa visite",
                     summary: "Seules les visites confirmées comptent, pour séparer l'intention de la sortie réelle.",
                     paragraphs: [
-                        "Une fois la date passée, la visite attend un **« J'y suis allé »** dans Mes visites.",
-                        "La confirmation déclenche la **récompense** : le **billet souvenir** rejoint la collection, et l'app annonce un éventuel **passage de niveau** ou **trophée**.",
-                        "Une expo vue sans passer par l'app s'ajoute aussi, depuis sa fiche, avec **« Déjà vue ? »**.",
+                        "L'onglet **Mes visites** rassemble les visites à venir. On y ajoute son **billet numérique** avec le **lien de confirmation** reçu par e-mail après l'achat.",
+                        "Une fois la date passée, l'app demande **« Vous y êtes allé ? »**. La confirmation débloque un **billet souvenir**, un **tampon** et des **points d'expérience**.",
                     ],
                     screen: {
                         label: "Écran 3",
-                        description: "Visite à confirmer, récompense, puis album des billets souvenir",
+                        description: "Visite à venir, billet numérique, puis récompense de la visite",
                         image: "/projets/artpass/etape-3-confirmer.png",
                         mobileImage: "/projets/artpass/etape-3-confirmer-mobile.png",
                         noStage: true,
                         phonesLight: true,
                         phones: [
                             { image: "/projets/artpass/ecrans/visites.png", caption: "La visite attend sa confirmation" },
-                            { image: "/projets/artpass/ecrans/resultat.png", caption: "Billet souvenir, niveau et trophée débloqués" },
-                            { image: "/projets/artpass/ecrans/collection.png", caption: "L'album des billets souvenir" },
+                            { image: "/projets/artpass/ecrans/billet.png", caption: "Le billet numérique, depuis le lien reçu par e-mail" },
+                            { image: "/projets/artpass/ecrans/resultat.png", caption: "« J'y suis allé » : billet souvenir, tampon et niveau" },
                         ],
                     },
                 },
                 {
                     title: "Collectionner",
-                    summary: "Le passeport, les trophées et le classement donnent envie de varier ses sorties.",
+                    summary: "L'app est pensée autour de la collection : chaque sortie confirmée laisse une trace.",
                     paragraphs: [
-                        "Le **passeport culturel** reçoit un tampon par lieu visité, avec un emblème dessiné pour chaque lieu.",
-                        "Les **10 trophées** portent le nom d'œuvres du domaine public : la vitrine se lit comme un petit musée.",
-                        "Entre amis, un **classement** au nombre de visites confirmées et des **listes partagées** pour organiser les sorties.",
+                        "Le **passeport culturel** reçoit un **tampon** par musée visité.",
+                        "La **jauge d'expérience** fait monter de niveau et débloque des **trophées**.",
+                        "La **collection** garde tous les **billets souvenir** de ses visites.",
                     ],
                     screen: {
                         label: "Écran 4",
-                        description: "Passeport culturel, trophées et classement entre amis",
+                        description: "Passeport culturel, niveau et trophées, billets souvenir",
                         image: "/projets/artpass/etape-4-collectionner.png",
                         mobileImage: "/projets/artpass/etape-4-collectionner-mobile.png",
                         noStage: true,
                         phonesLight: true,
                         phones: [
-                            { image: "/projets/artpass/ecrans/passeport.png", caption: "Un tampon par lieu visité" },
-                            { image: "/projets/artpass/ecrans/trophees-scroll.png", caption: "Des trophées nommés d'après des œuvres" },
-                            { image: "/projets/artpass/ecrans/amis.png", caption: "Le classement entre amis" },
+                            { image: "/projets/artpass/ecrans/passeport.png", caption: "Un tampon par musée visité" },
+                            { image: "/projets/artpass/ecrans/progression.png", caption: "La jauge d'expérience et les trophées" },
+                            { image: "/projets/artpass/ecrans/collection.png", caption: "Les billets souvenir" },
                         ],
                     },
                 },
             ],
             tradeoffs: [
                 {
-                    title: "Récompenser la curiosité, pas une catégorie",
+                    title: "Faire de la gamification le moteur de l'envie",
                     description:
-                        "Toutes les expos comptent autant pour les niveaux et le classement. L'app valorise le nombre et la variété des sorties, sans jamais hiérarchiser l'art.",
+                        "Toute l'app repose sur la gamification, pour donner envie de voir plus d'expos et de musées. Niveaux, tampons et trophées récompensent chaque sortie confirmée, quel que soit le lieu, dans une interface simple et accueillante qui ne demande aucun effort pour jouer.",
                     icon: "reward",
                 },
                 {
-                    title: "Ne compter que les visites confirmées",
+                    title: "Guider ceux qui le veulent, laisser explorer les autres",
                     description:
-                        "Une visite prévue reste une intention. Seul « J'y suis allé » fait avancer le niveau, le passeport et les trophées.",
-                    icon: "confirm",
+                        "Pour renforcer le côté ludique, l'accueil suggère les expos les plus récentes et les plus attendues : une navigation cadrée pour qui veut se laisser guider. La carte, elle, permet d'explorer librement les expos autour de soi, pour trouver celles qui nous correspondent le plus.",
+                    icon: "navigation",
                 },
                 {
-                    title: "Renvoyer vers la billetterie du lieu",
+                    title: "L'affiliation plutôt que la vente de billets",
                     description:
-                        "« Réserver » ouvre la billetterie officielle, puis l'app propose d'ajouter la visite. ArtPass guide la sortie sans gérer de paiement.",
+                        "Vendre les billets obligerait à gérer remboursements et annulations, et les musées tiennent à garder le trafic sur leur site. ArtPass repose donc sur l'affiliation, via les API de billetterie des musées : « Réserver » demande la date, puis ouvre le site du lieu sur cette période. Une app plus simple pour un MVP, sans friction en plus pour le visiteur.",
                     icon: "integration",
                 },
                 {
-                    title: "Montrer les catégories plutôt qu'un bouton Filtres",
+                    title: "Une confirmation manuelle pour créer du lien",
                     description:
-                        "Des catégories en onglets et trois filtres rapides, à la place d'un bouton Filtres : moins de niveaux de filtres, et des catégories visibles d'emblée.",
-                    icon: "friction",
-                },
-                {
-                    title: "Dessiner des emblèmes plutôt que reprendre les logos",
-                    description:
-                        "Les tampons du passeport utilisent un emblème dessiné pour chaque lieu : les logos des musées sont des marques déposées.",
-                    icon: "craft",
+                        "Aucun moyen de confirmer une visite automatiquement, en scannant le QR code du billet par exemple : un simple « J'y suis allé » est donc demandé. Comme il débloque le billet souvenir, avec ses confettis, le tampon et l'expérience, le visiteur le fait volontiers, et revient dans l'app après chaque sortie.",
+                    icon: "confirm",
                 },
             ],
         },

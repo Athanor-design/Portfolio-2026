@@ -634,6 +634,7 @@ const CaseStudyContent = ({ project, index }: { project: Project; index: number 
                         problem={study.problem}
                         solution={study.solution}
                         result={study.result}
+                        resultLabel={study.resultLabel}
                         visuals={study.summaryVisuals}
                     />
 
