@@ -21,13 +21,16 @@ interface NavPillProps {
     className?: string;
     /** Prepend a home (back to intro) button — used on mobile. */
     showHome?: boolean;
+    /** "lg" gives 44px touch targets for the floating mobile pill. */
+    size?: "md" | "lg";
 }
 
-const NavPill = ({ active, layoutId, className, showHome }: NavPillProps) => (
+const NavPill = ({ active, layoutId, className, showHome, size = "md" }: NavPillProps) => (
     <nav
         aria-label="Navigation principale"
         className={cx(
-            "shrink-0 items-center rounded-full bg-primary p-1 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.08]",
+            "shrink-0 items-center rounded-full bg-primary shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.08]",
+            size === "lg" ? "p-1.5" : "p-1",
             className,
         )}
     >
@@ -39,7 +42,8 @@ const NavPill = ({ active, layoutId, className, showHome }: NavPillProps) => (
                         aria-label="Accueil"
                         aria-current={active === "top" ? "location" : undefined}
                         className={cx(
-                            "relative flex items-center rounded-full px-3 py-1.5 transition duration-200 ease-out",
+                            "relative flex items-center rounded-full transition duration-200 ease-out",
+                            size === "lg" ? "h-11 px-3.5" : "px-3 py-1.5",
                             active === "top" ? "text-primary" : "text-tertiary hover:text-primary",
                         )}
                     >
@@ -50,7 +54,7 @@ const NavPill = ({ active, layoutId, className, showHome }: NavPillProps) => (
                                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
                             />
                         )}
-                        <Home02 className="relative size-4" aria-hidden="true" />
+                        <Home02 className={cx("relative", size === "lg" ? "size-5" : "size-4")} aria-hidden="true" />
                     </a>
                 </li>
             )}
@@ -62,7 +66,8 @@ const NavPill = ({ active, layoutId, className, showHome }: NavPillProps) => (
                             href={`#${link.id}`}
                             aria-current={isActive ? "location" : undefined}
                             className={cx(
-                                "relative flex items-center rounded-full px-3.5 py-1.5 text-sm transition duration-200 ease-out",
+                                "relative flex items-center rounded-full transition duration-200 ease-out",
+                                size === "lg" ? "h-11 px-3.5 text-base" : "px-3.5 py-1.5 text-sm",
                                 isActive ? "text-primary" : "text-tertiary hover:text-primary",
                             )}
                         >
@@ -128,6 +133,7 @@ export const SiteHeader = () => {
                     active={activeMobile}
                     layoutId="nav-indicator-mobile"
                     showHome
+                    size="lg"
                     className="fixed inset-x-0 bottom-4 z-50 mx-auto flex w-fit bg-primary_alpha backdrop-blur-xl sm:hidden"
                 />,
                 document.body,
