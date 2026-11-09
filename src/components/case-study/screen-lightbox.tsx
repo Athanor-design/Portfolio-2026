@@ -26,7 +26,9 @@ export const ScreenLightbox = ({ image, onClose }: ScreenLightboxProps) => {
             isOpen={!!image}
             onOpenChange={(open) => !open && onClose()}
             isDismissable
-            className="fixed inset-0 z-[100] flex overflow-auto overscroll-contain bg-black/90 p-6 backdrop-blur-sm md:p-12"
+            // The blur lives on a pseudo-element: a backdrop-filter on the scrolling overlay itself would make it the
+            // containing block of the fixed close button, which would then scroll away with the image.
+            className="fixed inset-0 z-[100] flex overflow-auto overscroll-contain bg-black/90 p-6 before:pointer-events-none before:fixed before:inset-0 before:-z-10 before:backdrop-blur-sm md:p-12"
         >
             {/* Shrinks to the image and centres with auto margins, so a click on the dark area around it closes the viewer */}
             <AriaModal className="m-auto outline-none">
