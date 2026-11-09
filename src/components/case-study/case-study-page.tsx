@@ -274,6 +274,7 @@ const PhoneRow = ({
                                 onClick={() =>
                                     onZoom({
                                         src: shown.replace(/\.png$/, "@2x.png"),
+                                        mobileSrc: shown.replace(/\.png$/, "@3x.png"),
                                         alt: phone.caption,
                                     })
                                 }

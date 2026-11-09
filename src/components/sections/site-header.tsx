@@ -25,67 +25,73 @@ interface NavPillProps {
     size?: "md" | "lg";
 }
 
-const NavPill = ({ active, layoutId, className, showHome, size = "md" }: NavPillProps) => (
-    <nav
-        aria-label="Navigation principale"
-        className={cx(
-            "shrink-0 items-center rounded-full bg-primary shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.08]",
-            size === "lg" ? "p-1.5" : "p-1",
-            className,
-        )}
-    >
-        <ul className="flex items-center">
-            {showHome && (
-                <li>
-                    <a
-                        href="#top"
-                        aria-label="Accueil"
-                        aria-current={active === "top" ? "location" : undefined}
-                        className={cx(
-                            "relative flex items-center rounded-full transition duration-200 ease-out",
-                            size === "lg" ? "h-11 px-3.5" : "px-3 py-1.5",
-                            active === "top" ? "text-primary" : "text-tertiary hover:text-primary",
-                        )}
-                    >
-                        {active === "top" && (
-                            <motion.span
-                                layoutId={layoutId}
-                                className="absolute inset-0 rounded-full bg-tertiary"
-                                transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                            />
-                        )}
-                        <Home02 className={cx("relative", size === "lg" ? "size-5" : "size-4")} aria-hidden="true" />
-                    </a>
-                </li>
+const NavPill = ({ active, layoutId, className, showHome, size = "md" }: NavPillProps) => {
+    // The floating mobile pill can sit over light cards: brighter idle labels and a light indicator keep it readable
+    const idle = size === "lg" ? "text-secondary hover:text-primary" : "text-tertiary hover:text-primary";
+    const indicator = size === "lg" ? "bg-white/[0.16] ring-1 ring-white/[0.08] ring-inset" : "bg-tertiary";
+
+    return (
+        <nav
+            aria-label="Navigation principale"
+            className={cx(
+                "shrink-0 items-center rounded-full bg-primary shadow-[0_10px_24px_-14px_rgba(0,0,0,0.6)] ring-1 ring-white/[0.08]",
+                size === "lg" ? "p-1.5" : "p-1",
+                className,
             )}
-            {links.map((link) => {
-                const isActive = active === link.id;
-                return (
-                    <li key={link.id}>
+        >
+            <ul className="flex items-center">
+                {showHome && (
+                    <li>
                         <a
-                            href={`#${link.id}`}
-                            aria-current={isActive ? "location" : undefined}
+                            href="#top"
+                            aria-label="Accueil"
+                            aria-current={active === "top" ? "location" : undefined}
                             className={cx(
                                 "relative flex items-center rounded-full transition duration-200 ease-out",
-                                size === "lg" ? "h-11 px-3.5 text-base" : "px-3.5 py-1.5 text-sm",
-                                isActive ? "text-primary" : "text-tertiary hover:text-primary",
+                                size === "lg" ? "h-11 px-3.5" : "px-3 py-1.5",
+                                active === "top" ? "text-primary" : idle,
                             )}
                         >
-                            {isActive && (
+                            {active === "top" && (
                                 <motion.span
                                     layoutId={layoutId}
-                                    className="absolute inset-0 rounded-full bg-tertiary"
+                                    className={cx("absolute inset-0 rounded-full", indicator)}
                                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
                                 />
                             )}
-                            <span className="relative">{link.label}</span>
+                            <Home02 className={cx("relative", size === "lg" ? "size-5" : "size-4")} aria-hidden="true" />
                         </a>
                     </li>
-                );
-            })}
-        </ul>
-    </nav>
-);
+                )}
+                {links.map((link) => {
+                    const isActive = active === link.id;
+                    return (
+                        <li key={link.id}>
+                            <a
+                                href={`#${link.id}`}
+                                aria-current={isActive ? "location" : undefined}
+                                className={cx(
+                                    "relative flex items-center rounded-full transition duration-200 ease-out",
+                                    size === "lg" ? "h-11 px-3.5 text-base" : "px-3.5 py-1.5 text-sm",
+                                    isActive ? "text-primary" : idle,
+                                )}
+                            >
+                                {isActive && (
+                                    <motion.span
+                                        layoutId={layoutId}
+                                        className={cx("absolute inset-0 rounded-full", indicator)}
+                                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                                    />
+                                )}
+                                <span className="relative">{link.label}</span>
+                            </a>
+                        </li>
+                    );
+                })}
+            </ul>
+        </nav>
+    );
+};
 
 /**
  * Identity on the left (avatar, name, role),
@@ -134,7 +140,7 @@ export const SiteHeader = () => {
                     layoutId="nav-indicator-mobile"
                     showHome
                     size="lg"
-                    className="fixed inset-x-0 bottom-4 z-50 mx-auto flex w-fit bg-primary_alpha backdrop-blur-xl sm:hidden"
+                    className="fixed inset-x-0 bottom-4 z-50 mx-auto flex w-fit bg-primary/90 backdrop-blur-xl sm:hidden"
                 />,
                 document.body,
             )}
